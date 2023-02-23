@@ -180,14 +180,23 @@ class netbox::install (
   $test = "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate"
   notify { "test is: ${test}" : }
   
-  exec { "python_venv_${venv_dir}":
-    command => "/usr/bin/python3 -m venv ${venv_dir}",
-    user    => $user,
-    creates => "${venv_dir}/bin/activate",
-    cwd     => '/tmp',
-    unless  => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
+
+  python::pyvenv { $venv_dir:
+    ensure     => present,
+    venv_dir   => $venv_dir,
+    owner      => $user,
+    group      => $group,
   }
-  ~>exec { 'install python requirements':
+
+  # exec { "python_venv_${venv_dir}":
+  #   command => "/usr/bin/python3 -m venv ${venv_dir}",
+  #   user    => $user,
+  #   creates => "${venv_dir}/bin/activate",
+  #   cwd     => '/tmp',
+  #   unless  => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
+  # }
+
+  exec { 'install python requirements':
     cwd         => $software_directory,
     path        => [ "${venv_dir}/bin", '/usr/bin', '/usr/sbin' ],
     environment => ["VIRTUAL_ENV=${venv_dir}"],
@@ -195,7 +204,7 @@ class netbox::install (
     user        => $user,
     command     => $install_requirements_command,
     onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
-    refreshonly => true,
+    #refreshonly => true,
   }
   ~>exec { 'install local python requirements':
     cwd         => $software_directory,
