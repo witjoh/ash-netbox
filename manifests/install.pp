@@ -177,6 +177,9 @@ class netbox::install (
     }
   }
 
+  $test = "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate"
+  notify { "test is: ${test}" : }
+  
   exec { "python_venv_${venv_dir}":
     command => "/usr/bin/python3 -m venv ${venv_dir}",
     user    => $user,
