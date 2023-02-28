@@ -182,7 +182,7 @@ class netbox::install (
   
   class { 'python':
     ensure   => 'present',
-    version  => 3.8,
+    version  => '3.8',
     use_epel => true,
     pip      => present,
     dev      => present,
