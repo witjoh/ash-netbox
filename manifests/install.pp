@@ -177,9 +177,10 @@ class netbox::install (
     }
   }
 
+  # Netbox requires at least python 3.8 or higher
   class { 'python':
     ensure   => 'present',
-    version  => '3.8',
+    version  => '3.7',
     use_epel => true,
     pip      => present,
     dev      => present,
@@ -187,7 +188,7 @@ class netbox::install (
 
   python::pyvenv { $venv_dir:
     ensure     => present,
-    version  => '3.8',
+    version  => '3.7',
     venv_dir   => $venv_dir,
     owner      => $user,
     group      => $group,
