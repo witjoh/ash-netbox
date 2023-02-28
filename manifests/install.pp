@@ -177,11 +177,8 @@ class netbox::install (
     }
   }
 
-  $test = "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate"
-  notify { "test is: ${test}" : }
-  
   class { 'python':
-    ensure   => 'latest',
+    ensure   => 'present',
     version  => '3.8',
     use_epel => true,
     pip      => present,
@@ -190,6 +187,7 @@ class netbox::install (
 
   python::pyvenv { $venv_dir:
     ensure     => present,
+    version  => '3.8',
     venv_dir   => $venv_dir,
     owner      => $user,
     group      => $group,
