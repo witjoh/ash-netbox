@@ -228,7 +228,7 @@ class netbox (
   String $secret_key,
   String $version = '3.4.5',
   String $download_url = 'https://github.com/netbox-community/netbox/archive/refs/tags/v3.4.5.tar.gz',
-  String $download_checksum = 'b827c520e4c82842e426a5f9ad2d914d1728a3671e304d5f25eb06392c24866c',
+  String $download_checksum = '505e4551f6420a70265e927a2ad7b2fabbea5d917e396abaf410713d80fd2736',
   Stdlib::Absolutepath $download_tmp_dir = '/var/tmp',
   String $user = 'netbox',
   String $group = 'netbox',
