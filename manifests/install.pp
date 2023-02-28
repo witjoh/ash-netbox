@@ -181,7 +181,7 @@ class netbox::install (
   notify { "test is: ${test}" : }
   
   class { 'python':
-    ensure   => 'present',
+    ensure   => 'latest',
     version  => '3.8',
     use_epel => true,
     pip      => present,
