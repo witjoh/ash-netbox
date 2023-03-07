@@ -221,7 +221,7 @@ class netbox::install (
     provider    => shell,
     user        => $user,
     command     => $install_requirements_command,
-    after       => Python::Pyvenv[$venv_dir],
+    require     => Python::Pyvenv[$venv_dir],
     onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
     #refreshonly => true,
   }
@@ -233,7 +233,7 @@ class netbox::install (
     user        => $user,
     command     => $install_local_requirements_command,
     onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
-    after       => Exec['install python requirements'],
+    require     => Exec['install python requirements'],
     #refreshonly => true,
   }
 }
