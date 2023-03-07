@@ -141,19 +141,20 @@ class netbox::install (
       creates       => $software_directory_with_version,
       cleanup       => true,
       notify        => Exec['install python requirements'],
-    }
+  }
 
-    exec { 'netbox permission':
-      command     => "chown -R ${user}:${group} ${software_directory_with_version}",
-      path        => ['/usr/bin'],
-      subscribe   => Archive[$local_tarball],
-      refreshonly => true,
-    }
+  exec { 'netbox permission':
+    command     => "chown -R ${user}:${group} ${software_directory_with_version}",
+    path        => ['/usr/bin'],
+    subscribe   => Archive[$local_tarball],
+    refreshonly => true,
+  }
 
   file { $software_directory:
     ensure => 'link',
     target => $software_directory_with_version,
   }
+
   file { 'local_requirements':
     ensure => 'present',
     path   => "${software_directory}/local_requirements.txt",
@@ -220,6 +221,7 @@ class netbox::install (
     provider    => shell,
     user        => $user,
     command     => $install_requirements_command,
+    after       => Python::Pyvenv[$venv_dir],
     onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
     #refreshonly => true,
   }
@@ -231,6 +233,7 @@ class netbox::install (
     user        => $user,
     command     => $install_local_requirements_command,
     onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
-    refreshonly => true,
+    after       => Exec['install python requirements'],
+    #refreshonly => true,
   }
 }
