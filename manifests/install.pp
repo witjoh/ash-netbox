@@ -138,6 +138,7 @@ class netbox::install (
     owner  => $user,
     group  => $group,
     mode   => '0755',
+    notify => Archive[$local_tarball],
   }
 
   # Download tarball to /tmp then extract tarball into $install_root
@@ -147,10 +148,10 @@ class netbox::install (
     checksum_type => $download_checksum_type,
     extract       => true,
     extract_path  => $install_root,
-    creates       => $software_directory_with_version,
     cleanup       => true,
     user          => $user,
     group         => $group,
+    refreshonly   => true,
     notify        => Exec['install python requirements'],
   }
 
