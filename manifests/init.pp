@@ -249,7 +249,7 @@ class netbox (
   Stdlib::Host $database_host = 'localhost',
   Integer $database_port = 5432,
   Integer $database_conn_max_age = 300,
-  Array[Stdlib::Host] $allowed_hosts = ['netbox.exmple.com','localhost'],
+  Array[Stdlib::Host] $allowed_hosts = ['netbox.example.com','localhost', '127.0.0.1'],
   String $banner_top = '',
   String $banner_bottom = '',
   String $banner_login = '',
