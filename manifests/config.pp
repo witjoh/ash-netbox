@@ -242,12 +242,16 @@ class netbox::config (
     user        => $user,
   }
 
+  # Run schema migrations to pick up any new database model introduced by a plugin
   exec { 'database migration':
     onlyif  => "${venv_dir}/bin/python3 netbox/manage.py showmigrations | grep '\[ \]'",
     command => "${venv_dir}/bin/python3 netbox/manage.py migrate --no-input",
     require => File[$config_file],
     notify  => Exec['collect static files'],
   }
+
+  # Copy static files into /opt/netbox-$ver/netbox/static
+  # Note: This is to move static files any plugin might bring in, into the http serving dir
   exec { 'collect static files':
     command     => "${venv_dir}/bin/python3 netbox/manage.py collectstatic --no-input",
     require     => File[$config_file],
