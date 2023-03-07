@@ -1,4 +1,4 @@
-# @summary Installs Netbox
+ @summary Installs Netbox
 #
 # Installs Netbox
 #
@@ -79,10 +79,21 @@ class netbox::install (
   Enum['tarball', 'git_clone'] $install_method = 'tarball',
 ) {
 
+  # $packages =[
+  #   gcc,
+  #   python36,
+  #   python36-devel,
+  #   libxml2-devel,
+  #   libxslt-devel,
+  #   libffi-devel,
+  #   openssl-devel,
+  #   redhat-rpm-config
+  # ]
+
   $packages =[
     gcc,
-    python36,
-    python36-devel,
+    python38,
+    python38-devel,
     libxml2-devel,
     libxslt-devel,
     libffi-devel,
