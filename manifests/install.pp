@@ -152,7 +152,7 @@ class netbox::install (
     cleanup       => true,
     user          => $user,
     group         => $group,
-    notify        => Exec['install python requirements'],
+    # notify        => Exec['install python requirements'],
   }
 
   # Change ownership of all netbox files to the $user:$group
@@ -237,8 +237,11 @@ class netbox::install (
     provider    => shell,
     user        => $user,
     command     => $install_requirements_command,
-    require     => Python::Pyvenv[$venv_dir],
-    onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
+    require     => [
+      Python::Pyvenv[$venv_dir],
+      Archive[$local_tarball],
+    ],
+    # onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
     #refreshonly => true,
   }
   ~>exec { 'install local python requirements':
@@ -248,8 +251,8 @@ class netbox::install (
     provider    => shell,
     user        => $user,
     command     => $install_local_requirements_command,
-    onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
     require     => Exec['install python requirements'],
+    # onlyif      => "/usr/bin/grep '^[\\t ]*VIRTUAL_ENV=[\\\\'\\\"]*${venv_dir}[\\\"\\\\'][\\t ]*$' ${venv_dir}/bin/activate",
     #refreshonly => true,
   }
 }
