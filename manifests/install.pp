@@ -132,6 +132,15 @@ class netbox::install (
     $install_local_requirements_command = "${venv_dir}/bin/pip3 install -r local_requirements.txt"
   }
 
+  # Create the dir netbox will be installed into
+  file { $software_directory_with_version:
+    ensure => directory,
+    owner  => $user,
+    group  => $group,
+    mode   => '0755',
+  }
+
+  # Download tarball to /tmp then extract tarball into $install_root
   archive { $local_tarball:
     source        => $download_url,
     checksum      => $download_checksum,
@@ -145,6 +154,9 @@ class netbox::install (
     notify        => Exec['install python requirements'],
   }
 
+  # Change ownership of all netbox files to the $user:$group
+  # This might not be needed anymore since we create this dir ahead of time, need to verify
+  ## that the extracted tarball maintains permissions after extraction.
   exec { 'netbox permission':
     command     => "chown -R ${user}:${group} ${software_directory_with_version}",
     path        => ['/usr/bin'],
@@ -152,6 +164,7 @@ class netbox::install (
     refreshonly => true,
   }
 
+  # Create symlink /opt/netbox/
   file { $software_directory:
     ensure => 'link',
     target => $software_directory_with_version,
