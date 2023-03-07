@@ -148,10 +148,10 @@ class netbox::install (
     checksum_type => $download_checksum_type,
     extract       => true,
     extract_path  => $install_root,
+    # creates       => $software_directory_with_version,
     cleanup       => true,
     user          => $user,
     group         => $group,
-    refreshonly   => true,
     notify        => Exec['install python requirements'],
   }
 
