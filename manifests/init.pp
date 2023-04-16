@@ -227,7 +227,7 @@
 class netbox (
   String $secret_key,
   String $version = '3.4.5',
-  String $download_url = 'https://github.com/netbox-community/netbox/archive/refs/tags/v3.4.5.tar.gz',
+  String $download_url = "https://github.com/netbox-community/netbox/archive/refs/tags/v${version}.tar.gz",
   String $download_checksum = '505e4551f6420a70265e927a2ad7b2fabbea5d917e396abaf410713d80fd2736',
   Stdlib::Absolutepath $download_tmp_dir = '/var/tmp',
   String $user = 'netbox',
@@ -246,6 +246,7 @@ class netbox (
   String $database_password   = 'netbox',
   String $database_encoding   = 'UTF-8',
   String $database_locale     = 'en_US.UTF-8',
+  String $database_version    = '12',
   Stdlib::Host $database_host = 'localhost',
   Integer $database_port = 5432,
   Integer $database_conn_max_age = 300,
@@ -279,113 +280,116 @@ class netbox (
   String $short_datetime_format = 'Y-m-d H:i',
 ) {
 
-  Class['netbox::install'] -> Class['netbox::config'] ~> Class['netbox::service']
+  #Class['netbox::install'] -> Class['netbox::config'] ~> Class['netbox::service']
 
-  if $handle_database {
-    class { 'netbox::database':
-      database_name     => $database_name,
-      database_user     => $database_user,
-      database_password => $database_password,
-      database_encoding => $database_encoding,
-      database_locale   => $database_locale,
-    }
-    if $handle_redis {
-      Class['netbox::database'] -> Class['netbox::redis']
-    } else {
-      Class['netbox::database'] -> Class['netbox::install']
-    }
-  }
+  echo {'Hello from netbox itself!': }
 
-  if $handle_redis {
-    class { 'netbox::redis':
-    }
-    Class['netbox::redis'] -> Class['netbox::install']
-  }
+  # if $handle_database {
+  #   class { 'netbox::database':
+  #     database_name     => $database_name,
+  #     database_user     => $database_user,
+  #     database_password => $database_password,
+  #     database_encoding => $database_encoding,
+  #     database_locale   => $database_locale,
+  #     database_version  => $database_version,
+  #   }
+  #   if $handle_redis {
+  #     Class['netbox::database'] -> Class['netbox::redis']
+  #   } else {
+  #     Class['netbox::database'] -> Class['netbox::install']
+  #   }
+  # }
 
-  class { 'netbox::install':
-    install_root                         => $install_root,
-    version                              => $version,
-    user                                 => $user,
-    group                                => $group,
-    download_url                         => $download_url,
-    download_checksum                    => $download_checksum,
-    download_checksum_type               => $download_checksum_type,
-    download_tmp_dir                     => $download_tmp_dir,
-    include_napalm                       => $include_napalm,
-    include_django_storages              => $include_django_storages,
-    include_ldap                         => $include_ldap,
-    install_dependencies_from_filesystem => $install_dependencies_from_filesystem,
-    python_dependency_path               => $python_dependency_path,
-  }
+  # if $handle_redis {
+  #   class { 'netbox::redis':
+  #   }
+  #   Class['netbox::redis'] -> Class['netbox::install']
+  # }
 
-  $redis_options = {
-    'tasks' => {
-      host => 'localhost',
-      port => 6379,
-      password => '',
-      database => 0,
-      default_timeout => 300,
-      ssl => 'False',
-    },
-    'caching' => {
-      host => 'localhost',
-      port => 6379,
-      password => '',
-      database => 1,
-      default_timeout => 300,
-      ssl => 'False',
-    },
-  }
+  # class { 'netbox::install':
+  #   install_root                         => $install_root,
+  #   version                              => $version,
+  #   user                                 => $user,
+  #   group                                => $group,
+  #   download_url                         => $download_url,
+  #   download_checksum                    => $download_checksum,
+  #   download_checksum_type               => $download_checksum_type,
+  #   download_tmp_dir                     => $download_tmp_dir,
+  #   include_napalm                       => $include_napalm,
+  #   include_django_storages              => $include_django_storages,
+  #   include_ldap                         => $include_ldap,
+  #   install_dependencies_from_filesystem => $install_dependencies_from_filesystem,
+  #   python_dependency_path               => $python_dependency_path,
+  # }
 
-  $email_options = {
-    server     => $email_server,
-    port       => $email_port,
-    username   => $email_username,
-    password   => $email_password,
-    timeout    => $email_timeout,
-    from_email => $email_from_email,
-  }
+  # $redis_options = {
+  #   'tasks' => {
+  #     host => 'localhost',
+  #     port => 6379,
+  #     password => '',
+  #     database => 0,
+  #     default_timeout => 300,
+  #     ssl => 'False',
+  #   },
+  #   'caching' => {
+  #     host => 'localhost',
+  #     port => 6379,
+  #     password => '',
+  #     database => 1,
+  #     default_timeout => 300,
+  #     ssl => 'False',
+  #   },
+  # }
 
-  class { 'netbox::config':
-    user                    => $user,
-    group                   => $group,
-    install_root            => $install_root,
-    allowed_hosts           => $allowed_hosts,
-    database_name           => $database_name,
-    database_user           => $database_user,
-    database_password       => $database_password,
-    database_host           => $database_host,
-    database_port           => $database_port,
-    database_conn_max_age   => $database_conn_max_age,
-    redis_options           => $redis_options,
-    email_options           => $email_options,
-    secret_key              => $secret_key,
-    admins                  => $admins,
-    banner_top              => $banner_top,
-    banner_bottom           => $banner_bottom,
-    banner_login            => $banner_login,
-    base_path               => $base_path,
-    debug                   => $debug,
-    enforce_global_unique   => $enforce_global_unique,
-    login_required          => $login_required,
-    metrics_enabled         => $metrics_enabled,
-    prefer_ipv4             => $prefer_ipv4,
-    exempt_view_permissions => $exempt_view_permissions,
-    napalm_username         => $napalm_username,
-    napalm_password         => $napalm_password,
-    napalm_timeout          => $napalm_timeout,
-    time_zone               => $time_zone,
-    date_format             => $date_format,
-    short_date_format       => $short_date_format,
-    time_format             => $time_format,
-    short_time_format       => $short_time_format,
-    datetime_format         => $datetime_format,
-    short_datetime_format   => $short_datetime_format,
-  }
+  # $email_options = {
+  #   server     => $email_server,
+  #   port       => $email_port,
+  #   username   => $email_username,
+  #   password   => $email_password,
+  #   timeout    => $email_timeout,
+  #   from_email => $email_from_email,
+  # }
 
-  class {'netbox::service':
-    install_root => $install_root,
-    user         => $user,
-    group        => $group,
-  }
+  # class { 'netbox::config':
+  #   user                    => $user,
+  #   group                   => $group,
+  #   install_root            => $install_root,
+  #   allowed_hosts           => $allowed_hosts,
+  #   database_name           => $database_name,
+  #   database_user           => $database_user,
+  #   database_password       => $database_password,
+  #   database_host           => $database_host,
+  #   database_port           => $database_port,
+  #   database_conn_max_age   => $database_conn_max_age,
+  #   redis_options           => $redis_options,
+  #   email_options           => $email_options,
+  #   secret_key              => $secret_key,
+  #   admins                  => $admins,
+  #   banner_top              => $banner_top,
+  #   banner_bottom           => $banner_bottom,
+  #   banner_login            => $banner_login,
+  #   base_path               => $base_path,
+  #   debug                   => $debug,
+  #   enforce_global_unique   => $enforce_global_unique,
+  #   login_required          => $login_required,
+  #   metrics_enabled         => $metrics_enabled,
+  #   prefer_ipv4             => $prefer_ipv4,
+  #   exempt_view_permissions => $exempt_view_permissions,
+  #   napalm_username         => $napalm_username,
+  #   napalm_password         => $napalm_password,
+  #   napalm_timeout          => $napalm_timeout,
+  #   time_zone               => $time_zone,
+  #   date_format             => $date_format,
+  #   short_date_format       => $short_date_format,
+  #   time_format             => $time_format,
+  #   short_time_format       => $short_time_format,
+  #   datetime_format         => $datetime_format,
+  #   short_datetime_format   => $short_datetime_format,
+  # }
+
+  # class {'netbox::service':
+  #   install_root => $install_root,
+  #   user         => $user,
+  #   group        => $group,
+  # }
 }

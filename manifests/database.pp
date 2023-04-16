@@ -18,6 +18,9 @@
 # @param database_locale
 #   Locale used by the PostgreSQL database.
 #
+# @param database_version
+#   Version of PostgreSQL to install
+#
 # @example
 #   include netbox::database
 class netbox::database (
@@ -26,11 +29,13 @@ class netbox::database (
   String $database_password,
   String $database_encoding,
   String $database_locale,
+  String $database_version,
 ){
 
   class { 'postgresql::globals':
     encoding => $database_encoding,
     locale   => $database_locale,
+    version  => $database_version,
   }
   ->class { 'postgresql::server':
   }
