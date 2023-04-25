@@ -1,4 +1,4 @@
-<% | 
+<% |
   Array[Stdlib::Host] $allowed_hosts,
   String $database_name,
   String $database_user,
@@ -25,11 +25,12 @@
   Integer $napalm_timeout,
   String $time_zone,
   String $date_format,
-  String $short_date_format, 
+  String $short_date_format,
   String $time_format,
-  String $short_time_format, 
+  String $short_time_format,
   String $datetime_format,
   String $short_datetime_format,
+  Boolean $include_ldap,
   | -%>
 
 #########################
@@ -257,3 +258,26 @@ TIME_FORMAT = '<%= $time_format %>'
 SHORT_TIME_FORMAT = '<%= $short_time_format %>'
 DATETIME_FORMAT = '<%= $datetime_format %>'
 SHORT_DATETIME_FORMAT = '<%= $short_datetime_format %>'
+<% if $include_ldap { -%>
+REMOTE_AUTH_BACKEND = 'netbox.authentication.LDAPBackend'
+<% } -%>
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'netbox_auth_log': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/opt/netbox.log',
+            'maxBytes': 1024 * 500,
+            'backupCount': 5,
+        },
+    },
+    'loggers': {
+        'django_auth_ldap': {
+            'handlers': ['netbox_auth_log'],
+            'level': 'DEBUG',
+        },
+    },
+}

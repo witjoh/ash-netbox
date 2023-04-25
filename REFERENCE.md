@@ -6,9 +6,9 @@
 **Classes**
 
 * [`netbox`](#netbox): Manage Netbox
-* [`netbox::config`](#netboxconfig): Configures Netbox and gunicorn
+* [`netbox::install`](#netboxinstall): Configures and installs Netbox and gunicorn
 * [`netbox::database`](#netboxdatabase): Sets up the PostgreSQL database for netbox
-* [`netbox::install`](#netboxinstall): Installs Netbox
+* [`netbox::download`](#netboxdownload): Downloads Netbox
 * [`netbox::redis`](#netboxredis): Class that handles the installation of Redis
 * [`netbox::service`](#netboxservice): Manage the Netbox and Netvox-rq Systemd services
 
@@ -429,7 +429,7 @@ NAPALM timeout (in seconds).
 
 Default value: 30
 
-### netbox::config
+### netbox::install
 
 Configures Netbox and gunicorn, and load the database schema.
 
@@ -438,12 +438,12 @@ Configures Netbox and gunicorn, and load the database schema.
 ##### 
 
 ```puppet
-include netbox::config
+include netbox::install
 ```
 
 #### Parameters
 
-The following parameters are available in the `netbox::config` class.
+The following parameters are available in the `netbox::install` class.
 
 ##### `user`
 
@@ -662,7 +662,7 @@ Data type: `String`
 
 Name of the PostgreSQL database password.
 
-### netbox::install
+### netbox::download
 
 Installs Netbox
 
@@ -671,12 +671,12 @@ Installs Netbox
 ##### 
 
 ```puppet
-include netbox::install
+include netbox::download
 ```
 
 #### Parameters
 
-The following parameters are available in the `netbox::install` class.
+The following parameters are available in the `netbox::download` class.
 
 ##### `install_root`
 
