@@ -257,7 +257,6 @@
 #
 class netbox (
   String $secret_key,
-  Hash $cert_api_auth_parameters = {},
   String $version = '3.4.6',
   String $download_url = "https://github.com/netbox-community/netbox/archive/refs/tags/v${version}.tar.gz",
   String $download_checksum = '505e4551f6420a70265e927a2ad7b2fabbea5d917e396abaf410713d80fd2736',
@@ -311,13 +310,6 @@ class netbox (
   String $datetime_format = 'N j, Y g:i a',
   String $short_datetime_format = 'Y-m-d H:i',
 
-  # Nginx params
-  String $nginx_server = '127.0.0.1',
-  String $nginx_proxy_host = '127.0.0.1',
-  String $nginx_proxy_port = '8001',
-  String $nginx_cert_path = '/etc/ssl/certs/netbox.crt',
-  String $nginx_private_key_path = '/etc/ssl/private/netbox.key',
-
   # LDAP params
   Optional[String] $ldap_server = undef,
   Optional[String] $ldap_service_account_cn = undef,
@@ -331,9 +323,6 @@ class netbox (
   Optional[String] $ldap_netbox_staff_user_cn = undef,
   Optional[String] $ldap_netbox_superuser_user_cn = undef,
 ){
-  include firewalld
-  include encore_utils
-
   Class['netbox::download'] -> Class['netbox::install'] ~> Class['netbox::service']
 
   if $handle_database {
@@ -358,14 +347,17 @@ class netbox (
     Class['netbox::redis'] -> Class['netbox::download']
   }
 
+  $software_directory = "${install_root}/netbox"
+
   class { 'netbox::download':
-    install_root     => $install_root,
-    version          => $version,
-    user             => $user,
-    group            => $group,
-    download_url     => $download_url,
-    download_tmp_dir => $download_tmp_dir,
-    include_ldap     => $include_ldap,
+    install_root       => $install_root,
+    software_directory => $software_directory,
+    version            => $version,
+    user               => $user,
+    group              => $group,
+    download_url       => $download_url,
+    download_tmp_dir   => $download_tmp_dir,
+    include_ldap       => $include_ldap,
   }
 
   $redis_options = {
@@ -397,9 +389,10 @@ class netbox (
   }
 
   class {'netbox::install':
+    version                       => $version,
+    software_directory            => $software_directory,
     user                          => $user,
     group                         => $group,
-    install_root                  => $install_root,
     allowed_hosts                 => $allowed_hosts,
     database_name                 => $database_name,
     database_user                 => $database_user,
@@ -447,17 +440,6 @@ class netbox (
     ldap_netbox_active_user_cn    => $ldap_netbox_active_user_cn,
     ldap_netbox_staff_user_cn     => $ldap_netbox_staff_user_cn,
     ldap_netbox_superuser_user_cn => $ldap_netbox_superuser_user_cn,
-  }
-
-  class {'netbox::nginx':
-    user                => $user,
-    group               => $group,
-    server_name         => $nginx_server,
-    proxy_host          => $nginx_proxy_host,
-    proxy_port          => $nginx_proxy_port,
-    cert_path           => $nginx_cert_path,
-    private_key_path    => $nginx_private_key_path,
-    api_auth_parameters => $cert_api_auth_parameters,
   }
 
   class {'netbox::service':

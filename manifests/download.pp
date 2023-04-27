@@ -28,6 +28,7 @@
 #   include netbox::download
 class netbox::download (
   Stdlib::Absolutepath $install_root,
+  Stdlib::Absolutepath $software_directory,
   String $version,
   String $download_url,
   Stdlib::Absolutepath $download_tmp_dir,
@@ -48,8 +49,7 @@ class netbox::download (
   ]
 
   $local_tarball = "${download_tmp_dir}/netbox-${version}.tar.gz"
-  $software_directory_with_version = "${install_root}/netbox-${version}"
-  $software_directory = "${install_root}/netbox"
+  $software_directory_with_version = "${software_directory}-${version}"
 
   $ldap_packages = [openldap-devel]
 
@@ -78,20 +78,19 @@ class netbox::download (
     before       => File[$software_directory_with_version],
   }
 
-    # Create the dir netbox will be installed into
+  # Create the dir netbox will be installed into
   file { $software_directory_with_version:
     ensure => directory,
     owner  => $user,
     group  => $group,
-    # recurse => true,
     before => File[$software_directory],
   }
 
-  # Create symlink /opt/netbox/
-  file { $software_directory:
-    ensure => 'link',
-    target => $software_directory_with_version,
-    owner  => $user,
-    group  => $group,
-  }
+  # # Create symlink /opt/netbox/
+  # file { $software_directory:
+  #   ensure => 'link',
+  #   target => $software_directory_with_version,
+  #   owner  => $user,
+  #   group  => $group,
+  # }
 }

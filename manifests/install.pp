@@ -169,9 +169,10 @@
 # @example
 #   include netbox::install
 class netbox::install (
+  String $version,
+  Stdlib::Absolutepath $software_directory,
   String $user,
   String $group,
-  Stdlib::Absolutepath $install_root,
   Array[Stdlib::Host] $allowed_hosts,
   String $database_name,
   String $database_user,
@@ -220,10 +221,9 @@ class netbox::install (
   Optional[String] $ldap_netbox_staff_user_cn,
   Optional[String] $ldap_netbox_superuser_user_cn,
 ) {
-  $should_create_superuser = false;
-  $software_directory = "${install_root}/netbox"
-  $venv_dir = "${software_directory}/venv"
-  $gunicorn_file = "${software_directory}/gunicorn.py"
+  $software_directory_with_version = "${software_directory}-${version}"
+  $venv_dir = "${software_directory_with_version}/venv"
+  $gunicorn_file = "${software_directory_with_version}/gunicorn.py"
 
   $gunicorn_settings = {
     port                => 8001,
@@ -243,7 +243,7 @@ class netbox::install (
 
   file { 'local_requirements':
     ensure  => 'present',
-    path    => "${software_directory}/local_requirements.txt",
+    path    => "${software_directory_with_version}/local_requirements.txt",
     owner   => $user,
     group   => $group,
     require => File[$gunicorn_file],
@@ -251,7 +251,7 @@ class netbox::install (
 
   if $include_napalm {
     file_line { 'napalm':
-      path    => "${software_directory}/local_requirements.txt",
+      path    => "${software_directory_with_version}/local_requirements.txt",
       line    => 'napalm',
       require => File['local_requirements']
     }
@@ -266,7 +266,7 @@ class netbox::install (
 
   if $include_django_storages {
     file_line { 'django_storages':
-      path    => "${software_directory}/local_requirements.txt",
+      path    => "${software_directory_with_version}/local_requirements.txt",
       line    => 'django-storages',
       require => File['local_requirements']
     }
@@ -274,12 +274,13 @@ class netbox::install (
 
   if $include_ldap {
     file_line { 'ldap':
-      path    => "${software_directory}/local_requirements.txt",
+      path    => "${software_directory_with_version}/local_requirements.txt",
       line    => 'django-auth-ldap',
       require => File['local_requirements']
     }
 
-    file {"${software_directory}/netbox/netbox/ldap_config.py":
+    file {"${software_directory_with_version}/netbox/netbox/ldap_config.py":
+      ensure  => present,
       content => epp('netbox/ldap_config.py.epp', {
         'server'                   => $ldap_server,
         'service_account_cn'       => $ldap_service_account_cn,
@@ -299,9 +300,10 @@ class netbox::install (
     }
   }
 
-  $config_file = "${software_directory}/netbox/netbox/configuration.py"
+  $config_file = "${software_directory_with_version}/netbox/netbox/configuration.py"
 
   file { $config_file:
+    ensure  => present,
     content => epp('netbox/configuration.py.epp', {
       'allowed_hosts'           => $allowed_hosts,
       'database_name'           => $database_name,
@@ -343,6 +345,10 @@ class netbox::install (
 
   $tmp_venv_dir = '/tmp/netbox_venv'
 
+  # This tmp venv is created because as the latest versions of netbox
+  # (as of this writing) requires at least python3.8 to run the upgrade script
+  # so instead of messing with python at OS level, just create tmp venv
+  # to run script
   python::pyvenv { $tmp_venv_dir:
     ensure   => present,
     version  => '3.8',
@@ -353,11 +359,20 @@ class netbox::install (
   }
 
   exec {'upgrade script':
-    command     => "${software_directory}/upgrade.sh",
+    command     => "${software_directory_with_version}/upgrade.sh",
     environment => ["PYTHON=${tmp_venv_dir}/bin/python3.8"],
     require     => File[$config_file],
     path        => '/usr/bin',
-    cwd         => $software_directory
+    cwd         => $software_directory_with_version
+  }
+
+  # Create symlink /opt/netbox/
+  file { $software_directory:
+    ensure  => 'link',
+    target  => $software_directory_with_version,
+    owner   => $user,
+    group   => $group,
+    require => Exec['upgrade script']
   }
 
   file {'/etc/cron.daily/netbox-housekeeping':
@@ -367,7 +382,17 @@ class netbox::install (
     group  => $group,
   }
 
-  facter::fact { 'netbox_installed':
-    value => true,
+  # if($facts['netbox_version_installed'] != undef and $facts['netbox_version_installed'] != $version){
+  #   # This is to clean up older versions of netbox
+  #   file {"${software_directory}-${$facts['netbox_version_installed']}":
+  #     ensure  => absent,
+  #     recurse => true,
+  #     require => Exec['upgrade script']
+  #   }
+  # }
+
+  facter::fact { 'netbox_version_installed':
+    value   => $version,
+    require => Exec['upgrade script']
   }
 }
