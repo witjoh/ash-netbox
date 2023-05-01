@@ -207,6 +207,9 @@ class netbox::install (
   Boolean $include_napalm,
   Boolean $include_django_storages,
   Boolean $include_ldap,
+  String $tmp_venv_dir,
+  String $python_version,
+  Optional[String] $log_file,
 
   # LDAP params
   Optional[String] $ldap_server,
@@ -234,6 +237,15 @@ class netbox::install (
     max_requests_jitter => 500,
   }
 
+  if($log_file){
+    file { $log_file:
+      ensure => present,
+      owner  => $user,
+      group  => $group,
+      mode   => '0644',
+    }
+  }
+
   file { $gunicorn_file:
     content => epp('netbox/gunicorn.py.epp', $gunicorn_settings),
     owner   => $user,
@@ -256,11 +268,20 @@ class netbox::install (
       require => File['local_requirements']
     }
 
-    firewalld_port { 'Open port 830 for napalm':
-      ensure   => present,
-      zone     => 'public',
-      port     => 830,
-      protocol => 'tcp',
+    include firewalld
+    firewalld::custom_service { 'napalm':
+      ensure => 'present',
+      port   => [
+        {
+          port     => 830,
+          protocol => 'tcp',
+        },
+      ],
+    }
+
+    firewalld_service { 'napalm':
+      ensure => 'present',
+      zone   => 'public',
     }
   }
 
@@ -337,21 +358,20 @@ class netbox::install (
       'datetime_format'         => $datetime_format,
       'short_datetime_format'   => $short_datetime_format,
       'include_ldap'            => $include_ldap,
+      'log_file'                => $log_file,
     }),
     owner   => $user,
     group   => $group,
     mode    => '0644',
   }
 
-  $tmp_venv_dir = '/tmp/netbox_venv'
-
-  # This tmp venv is created because as the latest versions of netbox
+  # This tmp venv is created because the latest versions of netbox
   # (as of this writing) requires at least python3.8 to run the upgrade script
   # so instead of messing with python at OS level, just create tmp venv
   # to run script
   python::pyvenv { $tmp_venv_dir:
     ensure   => present,
-    version  => '3.8',
+    version  => $python_version,
     venv_dir => $tmp_venv_dir,
     owner    => $user,
     group    => $group,
@@ -367,6 +387,11 @@ class netbox::install (
   }
 
   # Create symlink /opt/netbox/
+  # We wait until the upgrade script completes successfully before
+  # creating our symlink to the new folder
+  #
+  # If upgrade fails (in theory) the symlink should still be pointing
+  # to older version and still be running
   file { $software_directory:
     ensure  => 'link',
     target  => $software_directory_with_version,
@@ -381,15 +406,6 @@ class netbox::install (
     owner  => $user,
     group  => $group,
   }
-
-  # if($facts['netbox_version_installed'] != undef and $facts['netbox_version_installed'] != $version){
-  #   # This is to clean up older versions of netbox
-  #   file {"${software_directory}-${$facts['netbox_version_installed']}":
-  #     ensure  => absent,
-  #     recurse => true,
-  #     require => Exec['upgrade script']
-  #   }
-  # }
 
   facter::fact { 'netbox_version_installed':
     value   => $version,

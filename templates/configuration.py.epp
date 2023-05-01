@@ -31,6 +31,7 @@
   String $datetime_format,
   String $short_datetime_format,
   Boolean $include_ldap,
+  Optional[String] $log_file
   | -%>
 
 #########################
@@ -262,6 +263,7 @@ SHORT_DATETIME_FORMAT = '<%= $short_datetime_format %>'
 REMOTE_AUTH_BACKEND = 'netbox.authentication.LDAPBackend'
 <% } -%>
 
+<% if $log_file { -%>
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -269,7 +271,7 @@ LOGGING = {
         'netbox_auth_log': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/opt/netbox.log',
+            'filename': '<%= $log_file %>',
             'maxBytes': 1024 * 500,
             'backupCount': 5,
         },
@@ -281,3 +283,5 @@ LOGGING = {
         },
     },
 }
+<% } -%>
+

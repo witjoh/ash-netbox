@@ -13,7 +13,7 @@
 #   Name of the PostgreSQL database password.
 #
 # @param database_encoding
-#   Encodding used by the PostgreSQL database.
+#   Encoding used by the PostgreSQL database.
 #
 # @param database_locale
 #   Locale used by the PostgreSQL database.

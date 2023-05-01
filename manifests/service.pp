@@ -19,7 +19,7 @@ class netbox::service (
   String $group,
 ){
 
-  $netbox_pid_file = '/var/tmp/netbox.pid'
+  $_netbox_pid_file = '/var/tmp/netbox.pid'
 
   $service_params_netbox_rq = {
     'netbox_home'  => "${install_root}/netbox",
@@ -31,7 +31,7 @@ class netbox::service (
     'netbox_home'  => "${install_root}/netbox",
     'user'         => $user,
     'group'        => $group,
-    'pidfile'      => $netbox_pid_file,
+    'pidfile'      => $_netbox_pid_file,
   }
 
   systemd::unit_file { 'netbox-rq.service':

@@ -201,21 +201,6 @@
 #   Date/time formatting. See the following link for supported formats:
 #   https://docs.djangoproject.com/en/stable/ref/templates/builtins/#date
 #
-# @param nginx_server
-#   FQDN of nginx server
-#
-# @param nginx_proxy_host
-#   Server to proxy requests to
-#
-# @param nginx_proxy_port
-#   Port proxy server is listening on
-#
-# @param nginx_cert_path
-#   Path to cert for nginx
-#
-# @param nginx_private_key_path
-#   Path to private key for nginx
-#
 # @param ldap_server
 #   FQDN of ldap server
 #
@@ -309,6 +294,9 @@ class netbox (
   String $short_time_format = 'H:i:s',
   String $datetime_format = 'N j, Y g:i a',
   String $short_datetime_format = 'Y-m-d H:i',
+  String $tmp_venv_dir = '/tmp/netbox_venv',
+  String $python_version = '3.8',
+  Optional[String] $log_file,
 
   # LDAP params
   Optional[String] $ldap_server = undef,
@@ -347,11 +335,11 @@ class netbox (
     Class['netbox::redis'] -> Class['netbox::download']
   }
 
-  $software_directory = "${install_root}/netbox"
+  $_software_directory = "${install_root}/netbox"
 
   class { 'netbox::download':
     install_root       => $install_root,
-    software_directory => $software_directory,
+    software_directory => $_software_directory,
     version            => $version,
     user               => $user,
     group              => $group,
@@ -390,7 +378,7 @@ class netbox (
 
   class {'netbox::install':
     version                       => $version,
-    software_directory            => $software_directory,
+    software_directory            => $_software_directory,
     user                          => $user,
     group                         => $group,
     allowed_hosts                 => $allowed_hosts,
@@ -427,6 +415,9 @@ class netbox (
     include_napalm                => $include_napalm,
     include_django_storages       => $include_django_storages,
     include_ldap                  => $include_ldap,
+    tmp_venv_dir                  => $tmp_venv_dir,
+    python_version                => $python_version,
+    log_file                      => $log_file,
 
     # LDAP params
     ldap_server                   => $ldap_server,

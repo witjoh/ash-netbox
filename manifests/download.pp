@@ -5,6 +5,9 @@
 # @param install_root
 #   The directory where the netbox installation is unpacked
 #
+# @param software_directory
+#   Root directory of where netbox is installed
+#
 # @param version
 #   The version of Netbox. This must match the version in the
 #   tarball. This is used for managing files, directories and paths in
@@ -23,6 +26,9 @@
 # @param group
 #   The group owning the Netbox installation files, and running the
 #   service.
+#
+# @param include_ldap
+#   Determines whether to include the ldap package
 #
 # @example
 #   include netbox::download
@@ -83,14 +89,8 @@ class netbox::download (
     ensure => directory,
     owner  => $user,
     group  => $group,
+
+    # This is within the netbox::install class
     before => File[$software_directory],
   }
-
-  # # Create symlink /opt/netbox/
-  # file { $software_directory:
-  #   ensure => 'link',
-  #   target => $software_directory_with_version,
-  #   owner  => $user,
-  #   group  => $group,
-  # }
 }
