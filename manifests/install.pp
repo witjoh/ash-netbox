@@ -174,6 +174,7 @@ class netbox::install (
   String $user,
   String $group,
   Array[Stdlib::Host] $allowed_hosts,
+  String $database_version,
   String $database_name,
   String $database_user,
   String $database_password,
@@ -383,7 +384,11 @@ class netbox::install (
   exec {'upgrade script':
     command     => "${software_directory_with_version}/upgrade.sh",
     environment => ["PYTHON=${_tmp_venv}/bin/python3.8"],
-    require     => File[$config_file],
+    require     => [
+      File[$config_file],
+      Service['redis'],
+      Service["postgresql-${database_version}"]
+    ],
     path        => '/usr/bin',
     cwd         => $software_directory_with_version,
     timeout     => 400

@@ -381,6 +381,7 @@ class netbox (
     user                          => $user,
     group                         => $group,
     allowed_hosts                 => $allowed_hosts,
+    database_version              => $database_version,
     database_name                 => $database_name,
     database_user                 => $database_user,
     database_password             => $database_password,
