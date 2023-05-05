@@ -75,22 +75,21 @@ class netbox::download (
     system => true,
   }
 
+  #Create the dir netbox will be installed into
+  file { $software_directory_with_version:
+    ensure => directory,
+    owner  => $user,
+    group  => $group,
+  }
+
   # Download tarball to /tmp then extract tarball into $install_root
   archive { $local_tarball:
     source       => $download_url,
     extract      => true,
     extract_path => $install_root,
     cleanup      => true,
-    before       => File[$software_directory_with_version],
-  }
-
-  # Create the dir netbox will be installed into
-  file { $software_directory_with_version:
-    ensure => directory,
-    owner  => $user,
-    group  => $group,
-
-    # This is within the netbox::install class
-    before => File[$software_directory],
+    user         => $user,
+    group        => $group,
+    require      => File[$software_directory_with_version]
   }
 }

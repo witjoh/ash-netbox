@@ -294,7 +294,6 @@ class netbox (
   String $short_time_format = 'H:i:s',
   String $datetime_format = 'N j, Y g:i a',
   String $short_datetime_format = 'Y-m-d H:i',
-  String $tmp_venv_dir = '/tmp/netbox_venv',
   String $python_version = '3.8',
   Optional[String] $log_file,
 
@@ -415,7 +414,6 @@ class netbox (
     include_napalm                => $include_napalm,
     include_django_storages       => $include_django_storages,
     include_ldap                  => $include_ldap,
-    tmp_venv_dir                  => $tmp_venv_dir,
     python_version                => $python_version,
     log_file                      => $log_file,
 

@@ -207,7 +207,6 @@ class netbox::install (
   Boolean $include_napalm,
   Boolean $include_django_storages,
   Boolean $include_ldap,
-  String $tmp_venv_dir,
   String $python_version,
   Optional[String] $log_file,
 
@@ -237,20 +236,21 @@ class netbox::install (
     max_requests_jitter => 500,
   }
 
-  if($log_file){
-    file { $log_file:
-      ensure => present,
-      owner  => $user,
-      group  => $group,
-      mode   => '0644',
-    }
-  }
-
   file { $gunicorn_file:
     content => epp('netbox/gunicorn.py.epp', $gunicorn_settings),
     owner   => $user,
     group   => $group,
     mode    => '0644',
+  }
+
+  if $log_file {
+    file { $log_file:
+      ensure  => 'present',
+      owner   => $user,
+      group   => $group,
+      mode    => '0644',
+      require => File[$gunicorn_file]
+    }
   }
 
   file { 'local_requirements':
@@ -365,14 +365,16 @@ class netbox::install (
     mode    => '0644',
   }
 
+  $_tmp_venv = "${software_directory_with_version}/tmp_venv"
+
   # This tmp venv is created because the latest versions of netbox
   # (as of this writing) requires at least python3.8 to run the upgrade script
   # so instead of messing with python at OS level, just create tmp venv
   # to run script
-  python::pyvenv { $tmp_venv_dir:
+  python::pyvenv {$_tmp_venv:
     ensure   => present,
     version  => $python_version,
-    venv_dir => $tmp_venv_dir,
+    venv_dir => $_tmp_venv,
     owner    => $user,
     group    => $group,
     before   => Exec['upgrade script'],
@@ -380,10 +382,11 @@ class netbox::install (
 
   exec {'upgrade script':
     command     => "${software_directory_with_version}/upgrade.sh",
-    environment => ["PYTHON=${tmp_venv_dir}/bin/python3.8"],
+    environment => ["PYTHON=${_tmp_venv}/bin/python3.8"],
     require     => File[$config_file],
     path        => '/usr/bin',
-    cwd         => $software_directory_with_version
+    cwd         => $software_directory_with_version,
+    timeout     => 400
   }
 
   # Create symlink /opt/netbox/
@@ -401,10 +404,11 @@ class netbox::install (
   }
 
   file {'/etc/cron.daily/netbox-housekeeping':
-    ensure => link,
-    target => "${software_directory}/contrib/netbox-housekeeping.sh",
-    owner  => $user,
-    group  => $group,
+    ensure  => 'link',
+    target  => "${software_directory}/contrib/netbox-housekeeping.sh",
+    owner   => $user,
+    group   => $group,
+    require => File[$software_directory],
   }
 
   facter::fact { 'netbox_version_installed':
