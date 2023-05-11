@@ -213,27 +213,18 @@
 # @param ldap_service_account_ou
 #   Netbox service account ou
 #
-# @param ldap_user_search_ou
-#   OU to search for when users try logging into netbox
-#
-# @param ldap_netbox_login_user_cn
-#   CN needed for users to be able to log into netbox
-#
-# @param ldap_full_dc
+# @param ldap_dc
 #   Complete dc to lookup when searching for users
 #   Example: dc=example,dc=com
 #
 # @param ldap_netbox_group_ou
 #   OU to seach when looking for netbox related CN's
 #
-# @param ldap_netbox_active_user_cn
-#   CN for active user in netbox.  This is required by all users within netbox
+# @param ldap_netbox_ro_user_cn
+#   CN of netbox group for read only access
 #
-# @param ldap_netbox_staff_user_cn
-#   CN for staff user in netbox
-#
-# @param ldap_netbox_superuser_user_cn
-#   CN for superuser in netbox
+# @param ldap_netbox_admin_user_cn
+#   CN of netbox group for admin access
 #
 # @example Defaults
 #   class { 'netbox':
@@ -295,20 +286,20 @@ class netbox (
   String $datetime_format = 'N j, Y g:i a',
   String $short_datetime_format = 'Y-m-d H:i',
   String $python_version = '3.8',
+  Optional[Stdlib::Absolutepath] $log_dir_path,
   Optional[String] $log_file,
+  Integer $log_file_max_bytes = 1024 * 500,
+  Integer $num_of_log_backups = 5,
 
   # LDAP params
   Optional[String] $ldap_server = undef,
   Optional[String] $ldap_service_account_cn = undef,
   Optional[String] $ldap_service_account_password = undef,
   Optional[String] $ldap_service_account_ou = undef,
-  Optional[String] $ldap_user_search_ou = undef,
-  Optional[String] $ldap_netbox_login_user_cn = undef,
-  Optional[String] $ldap_full_dc = undef,
+  Optional[String] $ldap_dc = undef,
   Optional[String] $ldap_netbox_group_ou = undef,
-  Optional[String] $ldap_netbox_active_user_cn = undef,
-  Optional[String] $ldap_netbox_staff_user_cn = undef,
-  Optional[String] $ldap_netbox_superuser_user_cn = undef,
+  Optional[String] $ldap_netbox_ro_user_cn = undef,
+  Optional[String] $ldap_netbox_admin_user_cn = undef,
 ){
   Class['netbox::download'] -> Class['netbox::install'] ~> Class['netbox::service']
 
@@ -416,6 +407,7 @@ class netbox (
     include_django_storages       => $include_django_storages,
     include_ldap                  => $include_ldap,
     python_version                => $python_version,
+    log_dir_path                  => $log_dir_path,
     log_file                      => $log_file,
 
     # LDAP params
@@ -423,13 +415,10 @@ class netbox (
     ldap_service_account_cn       => $ldap_service_account_cn,
     ldap_service_account_password => $ldap_service_account_password,
     ldap_service_account_ou       => $ldap_service_account_ou,
-    ldap_user_search_ou           => $ldap_user_search_ou,
-    ldap_full_dc                  => $ldap_full_dc,
-    ldap_netbox_login_user_cn     => $ldap_netbox_login_user_cn,
+    ldap_dc                       => $ldap_dc,
     ldap_netbox_group_ou          => $ldap_netbox_group_ou,
-    ldap_netbox_active_user_cn    => $ldap_netbox_active_user_cn,
-    ldap_netbox_staff_user_cn     => $ldap_netbox_staff_user_cn,
-    ldap_netbox_superuser_user_cn => $ldap_netbox_superuser_user_cn,
+    ldap_netbox_ro_user_cn        => $ldap_netbox_ro_user_cn,
+    ldap_netbox_admin_user_cn     => $ldap_netbox_admin_user_cn,
   }
 
   class {'netbox::service':

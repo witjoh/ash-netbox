@@ -263,25 +263,3 @@ SHORT_DATETIME_FORMAT = '<%= $short_datetime_format %>'
 REMOTE_AUTH_BACKEND = 'netbox.authentication.LDAPBackend'
 <% } -%>
 
-<% if $log_file { -%>
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'netbox_auth_log': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '<%= $log_file %>',
-            'maxBytes': 1024 * 500,
-            'backupCount': 5,
-        },
-    },
-    'loggers': {
-        'django_auth_ldap': {
-            'handlers': ['netbox_auth_log'],
-            'level': 'DEBUG',
-        },
-    },
-}
-<% } -%>
-

@@ -144,27 +144,18 @@
 # @param ldap_service_account_ou
 #   Netbox service account ou
 #
-# @param ldap_user_search_ou
-#   OU to search for when users try logging into netbox
-#
-# @param ldap_netbox_login_user_cn
-#   CN needed for users to be able to log into netbox
-#
-# @param ldap_full_dc
+# @param ldap_dc
 #   Complete dc to lookup when searching for users
 #   Example: dc=example,dc=com
 #
 # @param ldap_netbox_group_ou
-#   OU to seach when looking for netbox related CN's
+#   OU to search when looking for netbox related CN's
 #
-# @param ldap_netbox_active_user_cn
-#   CN for active user in netbox.  This is required by all users within netbox
+# @param ldap_netbox_ro_user_cn
+#   CN for read only user in netbox
 #
-# @param ldap_netbox_staff_user_cn
-#   CN for staff user in netbox
-#
-# @param ldap_netbox_superuser_user_cn
-#   CN for superuser in netbox
+# @param ldap_netbox_admin_user_cn
+#   CN for admin user in netbox
 #
 # @example
 #   include netbox::install
@@ -209,20 +200,20 @@ class netbox::install (
   Boolean $include_django_storages,
   Boolean $include_ldap,
   String $python_version,
+  Optional[Stdlib::Absolutepath] $log_dir_path,
   Optional[String] $log_file,
+  Integer $log_file_max_bytes = 1024 * 500,
+  Integer $num_of_log_backups = 5,
 
   # LDAP params
   Optional[String] $ldap_server,
   Optional[String] $ldap_service_account_cn,
   Optional[String] $ldap_service_account_password,
   Optional[String] $ldap_service_account_ou,
-  Optional[String] $ldap_user_search_ou,
-  Optional[String] $ldap_full_dc,
-  Optional[String] $ldap_netbox_login_user_cn,
+  Optional[String] $ldap_dc,
   Optional[String] $ldap_netbox_group_ou,
-  Optional[String] $ldap_netbox_active_user_cn,
-  Optional[String] $ldap_netbox_staff_user_cn,
-  Optional[String] $ldap_netbox_superuser_user_cn,
+  Optional[String] $ldap_netbox_ro_user_cn,
+  Optional[String] $ldap_netbox_admin_user_cn,
 ) {
   $software_directory_with_version = "${software_directory}-${version}"
   $venv_dir = "${software_directory_with_version}/venv"
@@ -244,13 +235,21 @@ class netbox::install (
     mode    => '0644',
   }
 
-  if $log_file {
-    file { $log_file:
+  if $log_dir_path and $log_file {
+    $_log_file_path = "${log_dir_path}${log_file}"
+
+    exec { 'create log dir':
+      command => "mkdir -p ${log_dir_path}",
+      path    => '/usr/bin',
+      require => File[$gunicorn_file]
+    }
+
+    file { $_log_file_path:
       ensure  => 'present',
       owner   => $user,
       group   => $group,
       mode    => '0644',
-      require => File[$gunicorn_file]
+      require => Exec['create log dir']
     }
   }
 
@@ -308,13 +307,13 @@ class netbox::install (
         'service_account_cn'       => $ldap_service_account_cn,
         'service_account_password' => $ldap_service_account_password,
         'service_account_ou'       => $ldap_service_account_ou,
-        'full_dc'                  => $ldap_full_dc,
-        'user_search_ou'           => $ldap_user_search_ou,
-        'netbox_login_group_cn'    => $ldap_netbox_login_user_cn,
+        'dc'                       => $ldap_dc,
         'netbox_group_ou'          => $ldap_netbox_group_ou,
-        'netbox_active_user_cn'    => $ldap_netbox_active_user_cn,
-        'netbox_staff_user_cn'     => $ldap_netbox_staff_user_cn,
-        'netbox_superuser_user_cn' => $ldap_netbox_superuser_user_cn,
+        'netbox_ro_user_cn'        => $ldap_netbox_ro_user_cn,
+        'netbox_admin_user_cn'     => $ldap_netbox_admin_user_cn,
+        'log_file_path'            => $_log_file_path,
+        'log_file_max_bytes'       => $log_file_max_bytes,
+        'num_of_log_backups'       => $num_of_log_backups,
       }),
       owner   => $user,
       group   => $group,
