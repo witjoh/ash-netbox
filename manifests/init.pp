@@ -300,6 +300,7 @@ class netbox (
   Optional[String] $ldap_netbox_group_ou = undef,
   Optional[String] $ldap_netbox_ro_user_cn = undef,
   Optional[String] $ldap_netbox_admin_user_cn = undef,
+  Optional[String] $ldap_netbox_super_user_cn = undef,
 ){
   Class['netbox::download'] -> Class['netbox::install'] ~> Class['netbox::service']
 
@@ -419,6 +420,7 @@ class netbox (
     ldap_netbox_group_ou          => $ldap_netbox_group_ou,
     ldap_netbox_ro_user_cn        => $ldap_netbox_ro_user_cn,
     ldap_netbox_admin_user_cn     => $ldap_netbox_admin_user_cn,
+    ldap_netbox_super_user_cn     => $ldap_netbox_super_user_cn,
   }
 
   class {'netbox::service':

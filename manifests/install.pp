@@ -2,6 +2,12 @@
 #
 # Configures Netbox and gunicorn, and load the database schema.
 #
+# @param version
+#   The version on netbox to install
+#
+# @param software_directory
+#   The directory where netbox will be installed
+#
 # @param user
 #   The user owning the Netbox installation files, and running the
 #   service.
@@ -9,9 +15,6 @@
 # @param group
 #   The group owning the Netbox installation files, and running the
 #   service.
-#
-# @param install_root
-#   The directory where the netbox installation is unpacked
 #
 # @param allowed_hosts
 #   Array of valid fully-qualified domain names (FQDNs) for the NetBox server. NetBox will not permit write
@@ -28,10 +31,6 @@
 # @param database_password
 #   Name of the PostgreSQL database password. If handle_database is true, then this database password
 #   gets created as well. If not, then it is only used by the application, and needs to exist.
-#
-# @param admins
-#   Array of hashes with two keys, 'name' and 'email'. This is where the email goes if something goes wrong
-#   This feature (in the Puppet module) is not well tested.
 #
 # @param database_host
 #   Hostname where the PostgreSQL database resides.
@@ -55,6 +54,10 @@
 #   A random string of letters, numbers and symbols that Netbox needs.
 #   This needs to be supplied, and should be treated as a secret. Should
 #   be at least 50 characters long.
+#
+# @param admins
+#   Array of hashes with two keys, 'name' and 'email'. This is where the email goes if something goes wrong
+#   This feature (in the Puppet module) is not well tested.
 #
 # @param banner_top
 #   Text for top banner on the Netbox webapp
@@ -132,6 +135,33 @@
 # Date/time formatting. See the following link for supported formats:
 # https://docs.djangoproject.com/en/stable/ref/templates/builtins/#date
 #
+# @param include_napalm
+#   Determines whether to install napalm packages along with opening port
+#   for napalm to work
+#
+# @param include_django_storages
+#   Determines whether to install django_storages packages
+#
+# @param include_ldap
+#   Determines whether to install ldap packages along with setting up ldap
+#   configuration file
+#
+# @param python_version
+#   Python version to use when creating temp virtual env for installing netbox
+#   This allows user to update version if netbox's requirements change
+#
+# @param log_dir_path
+#   Directory where to store netbox log file
+#
+# @param log_file
+#   Filename of netbox log file
+#
+# @param log_file_max_bytes
+#   Max file size in bytes that is allowed per log file
+#
+# @param num_of_log_backups
+#   Number of log files kept in backup before being rotated out
+#
 # @param ldap_server
 #   FQDN of ldap server
 #
@@ -156,6 +186,9 @@
 #
 # @param ldap_netbox_admin_user_cn
 #   CN for admin user in netbox
+#
+# @param ldap_netbox_super_user_cn
+#   CN for super user in netbox
 #
 # @example
 #   include netbox::install
@@ -214,6 +247,7 @@ class netbox::install (
   Optional[String] $ldap_netbox_group_ou,
   Optional[String] $ldap_netbox_ro_user_cn,
   Optional[String] $ldap_netbox_admin_user_cn,
+  Optional[String] $ldap_netbox_super_user_cn,
 ) {
   $software_directory_with_version = "${software_directory}-${version}"
   $venv_dir = "${software_directory_with_version}/venv"
@@ -237,20 +271,6 @@ class netbox::install (
 
   if $log_dir_path and $log_file {
     $_log_file_path = "${log_dir_path}${log_file}"
-
-    exec { 'create log dir':
-      command => "mkdir -p ${log_dir_path}",
-      path    => '/usr/bin',
-      require => File[$gunicorn_file]
-    }
-
-    file { $_log_file_path:
-      ensure  => 'present',
-      owner   => $user,
-      group   => $group,
-      mode    => '0644',
-      require => Exec['create log dir']
-    }
   }
 
   file { 'local_requirements':
@@ -311,6 +331,7 @@ class netbox::install (
         'netbox_group_ou'          => $ldap_netbox_group_ou,
         'netbox_ro_user_cn'        => $ldap_netbox_ro_user_cn,
         'netbox_admin_user_cn'     => $ldap_netbox_admin_user_cn,
+        'netbox_super_user_cn'     => $ldap_netbox_super_user_cn,
         'log_file_path'            => $_log_file_path,
         'log_file_max_bytes'       => $log_file_max_bytes,
         'num_of_log_backups'       => $num_of_log_backups,
@@ -382,7 +403,7 @@ class netbox::install (
 
   exec {'upgrade script':
     command     => "${software_directory_with_version}/upgrade.sh",
-    environment => ["PYTHON=${_tmp_venv}/bin/python3.8"],
+    environment => ["PYTHON=${_tmp_venv}/bin/python"],
     require     => [
       File[$config_file],
       Service['redis'],
@@ -404,7 +425,24 @@ class netbox::install (
     target  => $software_directory_with_version,
     owner   => $user,
     group   => $group,
+    force   => true,
     require => Exec['upgrade script']
+  }
+
+  if $log_dir_path and $log_file {
+    exec { 'create log dir':
+      command => "mkdir -p ${log_dir_path}",
+      path    => '/usr/bin',
+      require => File[$software_directory]
+    }
+
+    file { $_log_file_path:
+      ensure  => 'present',
+      owner   => $user,
+      group   => $group,
+      mode    => '0644',
+      require => Exec['create log dir']
+    }
   }
 
   file {'/etc/cron.daily/netbox-housekeeping':

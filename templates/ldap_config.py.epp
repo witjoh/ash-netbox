@@ -7,6 +7,7 @@
     String $netbox_group_ou,
     String $netbox_ro_user_cn,
     String $netbox_admin_user_cn,
+    String $netbox_super_user_cn,
     Optional[String] $log_file_path,
     Integer $log_file_max_bytes,
     Integer $num_of_log_backups
@@ -82,8 +83,11 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     | LDAPGroupQuery("<%= $netbox_ro_user_cn %>,<%= $netbox_group_ou %>,<%= $dc %>")
     ),
     "is_staff": (
-        LDAPGroupQuery("<%= $netbox_admin_user_cn %>,<%= $netbox_group_ou %>,<%= $dc %>")
-    )
+      LDAPGroupQuery("<%= $netbox_admin_user_cn %>,<%= $netbox_group_ou %>,<%= $dc %>")
+    ),
+    "is_superuser": (
+      LDAPGroupQuery("<%= $netbox_super_user_cn %>,<%= $netbox_group_ou %>,<%= $dc %>")
+    ),
 }
 
 # Mirror LDAP group assignments.
