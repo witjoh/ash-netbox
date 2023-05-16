@@ -20,6 +20,9 @@
 #   Array of valid fully-qualified domain names (FQDNs) for the NetBox server. NetBox will not permit write
 #   access to the server via any other hostnames. The first FQDN in the list will be treated as the preferred name.
 #
+# @param database_version
+#   Version of the PostgreSQL database
+#
 # @param database_name
 #   Name of the PostgreSQL database. If handle_database is true, then this database
 #   gets created as well. If not, then it is only used by the application, and needs to exist.
@@ -285,7 +288,7 @@ class netbox::install (
     file_line { 'napalm':
       path    => "${software_directory_with_version}/local_requirements.txt",
       line    => 'napalm',
-      require => File['local_requirements']
+      require => File['local_requirements'],
     }
 
     include firewalld
@@ -309,7 +312,7 @@ class netbox::install (
     file_line { 'django_storages':
       path    => "${software_directory_with_version}/local_requirements.txt",
       line    => 'django-storages',
-      require => File['local_requirements']
+      require => File['local_requirements'],
     }
   }
 
@@ -317,24 +320,24 @@ class netbox::install (
     file_line { 'ldap':
       path    => "${software_directory_with_version}/local_requirements.txt",
       line    => 'django-auth-ldap',
-      require => File['local_requirements']
+      require => File['local_requirements'],
     }
 
-    file {"${software_directory_with_version}/netbox/netbox/ldap_config.py":
+    file { "${software_directory_with_version}/netbox/netbox/ldap_config.py":
       ensure  => present,
       content => epp('netbox/ldap_config.py.epp', {
-        'server'                   => $ldap_server,
-        'service_account_cn'       => $ldap_service_account_cn,
-        'service_account_password' => $ldap_service_account_password,
-        'service_account_ou'       => $ldap_service_account_ou,
-        'dc'                       => $ldap_dc,
-        'netbox_group_ou'          => $ldap_netbox_group_ou,
-        'netbox_ro_user_cn'        => $ldap_netbox_ro_user_cn,
-        'netbox_admin_user_cn'     => $ldap_netbox_admin_user_cn,
-        'netbox_super_user_cn'     => $ldap_netbox_super_user_cn,
-        'log_file_path'            => $_log_file_path,
-        'log_file_max_bytes'       => $log_file_max_bytes,
-        'num_of_log_backups'       => $num_of_log_backups,
+          'server'                   => $ldap_server,
+          'service_account_cn'       => $ldap_service_account_cn,
+          'service_account_password' => $ldap_service_account_password,
+          'service_account_ou'       => $ldap_service_account_ou,
+          'dc'                       => $ldap_dc,
+          'netbox_group_ou'          => $ldap_netbox_group_ou,
+          'netbox_ro_user_cn'        => $ldap_netbox_ro_user_cn,
+          'netbox_admin_user_cn'     => $ldap_netbox_admin_user_cn,
+          'netbox_super_user_cn'     => $ldap_netbox_super_user_cn,
+          'log_file_path'            => $_log_file_path,
+          'log_file_max_bytes'       => $log_file_max_bytes,
+          'num_of_log_backups'       => $num_of_log_backups,
       }),
       owner   => $user,
       group   => $group,
@@ -347,39 +350,39 @@ class netbox::install (
   file { $config_file:
     ensure  => present,
     content => epp('netbox/configuration.py.epp', {
-      'allowed_hosts'           => $allowed_hosts,
-      'database_name'           => $database_name,
-      'database_user'           => $database_user,
-      'database_password'       => $database_password,
-      'database_host'           => $database_host,
-      'database_port'           => $database_port,
-      'database_conn_max_age'   => $database_conn_max_age,
-      'redis_options'           => $redis_options,
-      'email_options'           => $email_options,
-      'secret_key'              => $secret_key,
-      'admins'                  => $admins,
-      'banner_top'              => $banner_top,
-      'banner_bottom'           => $banner_bottom,
-      'banner_login'            => $banner_login,
-      'base_path'               => $base_path,
-      'debug'                   => $debug,
-      'enforce_global_unique'   => $enforce_global_unique,
-      'exempt_view_permissions' => $exempt_view_permissions,
-      'login_required'          => $login_required,
-      'metrics_enabled'         => $metrics_enabled,
-      'prefer_ipv4'             => $prefer_ipv4,
-      'napalm_username'         => $napalm_username,
-      'napalm_password'         => $napalm_password,
-      'napalm_timeout'          => $napalm_timeout,
-      'time_zone'               => $time_zone,
-      'date_format'             => $date_format,
-      'short_date_format'       => $short_date_format,
-      'time_format'             => $time_format,
-      'short_time_format'       => $short_time_format,
-      'datetime_format'         => $datetime_format,
-      'short_datetime_format'   => $short_datetime_format,
-      'include_ldap'            => $include_ldap,
-      'log_file'                => $log_file,
+        'allowed_hosts'           => $allowed_hosts,
+        'database_name'           => $database_name,
+        'database_user'           => $database_user,
+        'database_password'       => $database_password,
+        'database_host'           => $database_host,
+        'database_port'           => $database_port,
+        'database_conn_max_age'   => $database_conn_max_age,
+        'redis_options'           => $redis_options,
+        'email_options'           => $email_options,
+        'secret_key'              => $secret_key,
+        'admins'                  => $admins,
+        'banner_top'              => $banner_top,
+        'banner_bottom'           => $banner_bottom,
+        'banner_login'            => $banner_login,
+        'base_path'               => $base_path,
+        'debug'                   => $debug,
+        'enforce_global_unique'   => $enforce_global_unique,
+        'exempt_view_permissions' => $exempt_view_permissions,
+        'login_required'          => $login_required,
+        'metrics_enabled'         => $metrics_enabled,
+        'prefer_ipv4'             => $prefer_ipv4,
+        'napalm_username'         => $napalm_username,
+        'napalm_password'         => $napalm_password,
+        'napalm_timeout'          => $napalm_timeout,
+        'time_zone'               => $time_zone,
+        'date_format'             => $date_format,
+        'short_date_format'       => $short_date_format,
+        'time_format'             => $time_format,
+        'short_time_format'       => $short_time_format,
+        'datetime_format'         => $datetime_format,
+        'short_datetime_format'   => $short_datetime_format,
+        'include_ldap'            => $include_ldap,
+        'log_file'                => $log_file,
     }),
     owner   => $user,
     group   => $group,
@@ -392,7 +395,7 @@ class netbox::install (
   # (as of this writing) requires at least python3.8 to run the upgrade script
   # so instead of messing with python at OS level, just create tmp venv
   # to run script
-  python::pyvenv {$_tmp_venv:
+  python::pyvenv { $_tmp_venv:
     ensure   => present,
     version  => $python_version,
     venv_dir => $_tmp_venv,
@@ -401,7 +404,7 @@ class netbox::install (
     before   => Exec['upgrade script'],
   }
 
-  exec {'upgrade script':
+  exec { 'upgrade script':
     command     => "${software_directory_with_version}/upgrade.sh",
     environment => ["PYTHON=${_tmp_venv}/bin/python"],
     require     => [
@@ -411,7 +414,7 @@ class netbox::install (
     ],
     path        => '/usr/bin',
     cwd         => $software_directory_with_version,
-    timeout     => 400
+    timeout     => 400,
   }
 
   # Create symlink /opt/netbox/
@@ -426,14 +429,14 @@ class netbox::install (
     owner   => $user,
     group   => $group,
     force   => true,
-    require => Exec['upgrade script']
+    require => Exec['upgrade script'],
   }
 
   if $log_dir_path and $log_file {
     exec { 'create log dir':
       command => "mkdir -p ${log_dir_path}",
       path    => '/usr/bin',
-      require => File[$software_directory]
+      require => File[$software_directory],
     }
 
     file { $_log_file_path:
@@ -441,11 +444,11 @@ class netbox::install (
       owner   => $user,
       group   => $group,
       mode    => '0644',
-      require => Exec['create log dir']
+      require => Exec['create log dir'],
     }
   }
 
-  file {'/etc/cron.daily/netbox-housekeeping':
+  file { '/etc/cron.daily/netbox-housekeeping':
     ensure  => 'link',
     target  => "${software_directory}/contrib/netbox-housekeeping.sh",
     owner   => $user,
@@ -455,6 +458,6 @@ class netbox::install (
 
   facter::fact { 'netbox_version_installed':
     value   => $version,
-    require => Exec['upgrade script']
+    require => Exec['upgrade script'],
   }
 }

@@ -30,16 +30,16 @@ class netbox::database (
   String $database_encoding,
   String $database_locale,
   String $database_version,
-){
+) {
   if str2bool($facts['postgres_installed']) != true and $facts['os']['family'] == 'RedHat' and
-    $facts['os']['release']['major'] == '8' {
-    exec {'postgresql reset':
+  $facts['os']['release']['major'] == '8' {
+    exec { 'postgresql reset':
       command => 'yes | dnf module reset postgresql',
       path    => '/bin',
       before  => Exec['postgresql disable']
     }
 
-    exec {'postgresql disable':
+    exec { 'postgresql disable':
       command => 'yes | dnf module disable postgresql',
       path    => '/bin',
       before  => Class['postgresql::globals']

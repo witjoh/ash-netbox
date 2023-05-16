@@ -17,8 +17,7 @@ class netbox::service (
   Stdlib::Absolutepath $install_root,
   String $user,
   String $group,
-){
-
+) {
   $_netbox_pid_file = '/var/tmp/netbox.pid'
 
   $service_params_netbox_rq = {

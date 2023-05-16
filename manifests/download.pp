@@ -42,8 +42,7 @@ class netbox::download (
   String $group,
   Boolean $include_ldap,
 ) {
-
-  $packages =[
+  $packages = [
     gcc,
     python38,
     python38-devel,
