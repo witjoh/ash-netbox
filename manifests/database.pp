@@ -36,13 +36,13 @@ class netbox::database (
     exec { 'postgresql reset':
       command => 'yes | dnf module reset postgresql',
       path    => '/bin',
-      before  => Exec['postgresql disable']
+      before  => Exec['postgresql disable'],
     }
 
     exec { 'postgresql disable':
       command => 'yes | dnf module disable postgresql',
       path    => '/bin',
-      before  => Class['postgresql::globals']
+      before  => Class['postgresql::globals'],
     }
   }
 

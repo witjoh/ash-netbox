@@ -104,6 +104,9 @@
 #   Locale of the PostgreSQL database. If handle_database is false, this does nothing.
 #   Defaults to 'en_US.UTF-8''
 #
+# @param database_version
+#   Version of postgres to use
+#
 # @param database_host
 #   Name of the PostgreSQL database host. Defaults to 'localhost'
 #
@@ -201,6 +204,21 @@
 #   Date/time formatting. See the following link for supported formats:
 #   https://docs.djangoproject.com/en/stable/ref/templates/builtins/#date
 #
+# @param python_version
+#   Python version to use for netbox
+#
+# @param log_dir_path
+#   Directory where log files are stored
+#
+# @param log_file
+#   Name of log file to store logs
+#
+# @param log_file_max_bytes
+#   Determines in bytes how big a log file can be before rotating
+#
+# @param num_of_log_backups
+#   Determines number of log files to keep as backup
+#
 # @param ldap_server
 #   FQDN of ldap server
 #
@@ -226,6 +244,9 @@
 # @param ldap_netbox_admin_user_cn
 #   CN of netbox group for admin access
 #
+# @param ldap_netbox_super_user_cn
+#   CN of netbox group for super user access
+#
 # @example Defaults
 #   class { 'netbox':
 #     secret_key => $my_secret_variable
@@ -243,8 +264,6 @@ class netbox (
   Stdlib::Absolutepath $install_root = '/opt',
   Boolean $handle_database = true,
   Boolean $handle_redis = true,
-  Boolean $install_dependencies_from_filesystem = false,
-  Stdlib::Absolutepath $python_dependency_path = '/srv/python_dependencies',
   Boolean $include_napalm = true,
   Boolean $include_django_storages = true,
   Boolean $include_ldap = true,
@@ -301,11 +320,11 @@ class netbox (
   Optional[String] $ldap_netbox_ro_user_cn = undef,
   Optional[String] $ldap_netbox_admin_user_cn = undef,
   Optional[String] $ldap_netbox_super_user_cn = undef,
-){
+) {
   Class['netbox::download'] -> Class['netbox::install'] ~> Class['netbox::service']
 
   if $handle_database {
-    class {'netbox::database':
+    class { 'netbox::database':
       database_name     => $database_name,
       database_user     => $database_user,
       database_password => $database_password,
@@ -367,7 +386,7 @@ class netbox (
     from_email => $email_from_email,
   }
 
-  class {'netbox::install':
+  class { 'netbox::install':
     version                       => $version,
     software_directory            => $_software_directory,
     user                          => $user,
@@ -423,7 +442,7 @@ class netbox (
     ldap_netbox_super_user_cn     => $ldap_netbox_super_user_cn,
   }
 
-  class {'netbox::service':
+  class { 'netbox::service':
     install_root => $install_root,
     user         => $user,
     group        => $group,

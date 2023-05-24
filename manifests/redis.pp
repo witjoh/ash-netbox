@@ -5,5 +5,5 @@
 # @example
 #   include netbox::redis
 class netbox::redis {
-  include ::redis
+  include redis
 }

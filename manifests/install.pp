@@ -277,7 +277,7 @@ class netbox::install (
   }
 
   file { 'local_requirements':
-    ensure  => 'present',
+    ensure  => file,
     path    => "${software_directory_with_version}/local_requirements.txt",
     owner   => $user,
     group   => $group,
@@ -324,7 +324,7 @@ class netbox::install (
     }
 
     file { "${software_directory_with_version}/netbox/netbox/ldap_config.py":
-      ensure  => present,
+      ensure  => file,
       content => epp('netbox/ldap_config.py.epp', {
           'server'                   => $ldap_server,
           'service_account_cn'       => $ldap_service_account_cn,
@@ -348,7 +348,7 @@ class netbox::install (
   $config_file = "${software_directory_with_version}/netbox/netbox/configuration.py"
 
   file { $config_file:
-    ensure  => present,
+    ensure  => file,
     content => epp('netbox/configuration.py.epp', {
         'allowed_hosts'           => $allowed_hosts,
         'database_name'           => $database_name,
@@ -440,7 +440,7 @@ class netbox::install (
     }
 
     file { $_log_file_path:
-      ensure  => 'present',
+      ensure  => file,
       owner   => $user,
       group   => $group,
       mode    => '0644',

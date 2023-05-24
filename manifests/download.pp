@@ -50,7 +50,7 @@ class netbox::download (
     libxslt-devel,
     libffi-devel,
     openssl-devel,
-    redhat-rpm-config
+    redhat-rpm-config,
   ]
 
   $local_tarball = "${download_tmp_dir}/netbox-${version}.tar.gz"
@@ -89,6 +89,6 @@ class netbox::download (
     cleanup      => true,
     user         => $user,
     group        => $group,
-    require      => File[$software_directory_with_version]
+    require      => File[$software_directory_with_version],
   }
 }
