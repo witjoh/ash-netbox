@@ -305,8 +305,8 @@ class netbox (
   String $datetime_format = 'N j, Y g:i a',
   String $short_datetime_format = 'Y-m-d H:i',
   String $python_version = '3.8',
-  Optional[Stdlib::Absolutepath] $log_dir_path,
-  Optional[String] $log_file,
+  Optional[Stdlib::Absolutepath] $log_dir_path = undef,
+  Optional[String] $log_file = undef,
   Integer $log_file_max_bytes = 1024 * 500,
   Integer $num_of_log_backups = 5,
 

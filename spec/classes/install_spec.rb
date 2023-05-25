@@ -6,10 +6,12 @@ describe 'netbox::install' do
       let(:facts) { os_facts }
       let(:params) do
         {
+          version: '3.5.1',
           user: 'testuser',
           group: 'testgroup',
-          install_root: '/opt',
+          software_directory: '/opt/netbox',
           allowed_hosts: ['0.0.0.0/0'],
+          database_version: '12',
           database_name: 'testdb',
           database_user: 'testdbuser',
           database_password: 'testdbpass',
@@ -84,19 +86,21 @@ describe 'netbox::install' do
           include_napalm: true,
           include_django_storages: true,
           include_ldap: true,
+          python_version: '3.8',
+          log_dir_path: '/opt/netbox/logs',
+          log_file: 'django-ldap-debug.log',
           ldap_server: 'server',
           ldap_service_account_cn: 'netbox',
           ldap_service_account_password: 'password123!',
           ldap_service_account_ou: 'Service Accounts',
-          ldap_user_search_ou: 'Users',
-          ldap_full_dc: 'dc=example,dc=com',
-          ldap_netbox_login_user_cn: 'NETBOX_USER',
-          ldap_netbox_group_ou: 'NETBOX_GROUP',
-          ldap_netbox_active_user_cn: 'NETBOX_ACTIVE_USER',
-          ldap_netbox_staff_user_cn: 'NETBOX_STAFF_USER',
-          ldap_netbox_superuser_user_cn: 'NETBOX_SUPERUSER_USER',
+          ldap_dc: 'dc=example,dc=com',
+          ldap_netbox_group_ou: 'groups',
+          ldap_netbox_ro_user_cn: 'ro_group',
+          ldap_netbox_admin_user_cn: 'admin_group',
+          ldap_netbox_super_user_cn: 'super_user_group',
         }
       end
+
       it { is_expected.to compile }
     end
   end

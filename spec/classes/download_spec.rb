@@ -7,6 +7,7 @@ describe 'netbox::download' do
       let(:params) do
         {
           install_root: '/opt',
+          software_directory: '/opt/netbox',
           version: '1.0.0',
           download_url: 'https://example.com/netbox-1.0.0.tar.gz',
           download_tmp_dir: '/tmp',
