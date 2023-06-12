@@ -443,8 +443,8 @@ class netbox (
   }
 
   class { 'netbox::service':
-    install_root => $install_root,
-    user         => $user,
-    group        => $group,
+    software_directory => $_software_directory,
+    user               => $user,
+    group              => $group,
   }
 }

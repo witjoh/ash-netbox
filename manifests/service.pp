@@ -1,6 +1,6 @@
 # @summary Manage the Netbox and Netvox-rq Systemd services
 #
-# @param install_root
+# @param software_directory
 #   The directory where the netbox installation is unpacked
 #
 # @param user
@@ -14,20 +14,20 @@
 # A class for running Netbox as a Systemd service
 #
 class netbox::service (
-  Stdlib::Absolutepath $install_root,
+  Stdlib::Absolutepath $software_directory,
   String $user,
   String $group,
 ) {
   $_netbox_pid_file = '/var/tmp/netbox.pid'
 
   $service_params_netbox_rq = {
-    'netbox_home'  => "${install_root}/netbox",
+    'netbox_home'  => $software_directory,
     'user'         => $user,
     'group'        => $group,
   }
 
   $service_params_netbox = {
-    'netbox_home'  => "${install_root}/netbox",
+    'netbox_home'  => $software_directory,
     'user'         => $user,
     'group'        => $group,
     'pidfile'      => $_netbox_pid_file,
