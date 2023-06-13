@@ -415,6 +415,8 @@ class netbox::install (
     path        => '/usr/bin',
     cwd         => $software_directory_with_version,
     timeout     => 600,
+    subscribe   => File[$version],
+    refreshonly => true,
   }
 
   # Create symlink /opt/netbox/
