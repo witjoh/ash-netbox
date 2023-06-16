@@ -97,6 +97,9 @@
 #   When determining the primary IP address for a device, IPv6 is preferred over IPv4 by default. Set this to True to
 #   prefer IPv4 instead.
 #
+# @param run_update_script
+#   Determines whether to run update script or not
+#
 # @param exempt_view_permissions
 #   Exempt certain models from the enforcement of view permissions. Models listed here will be viewable by all users and
 #   by anonymous users. List models in the form `<app>.<model>`. Add '*' to this list to exempt all models.
@@ -221,6 +224,7 @@ class netbox::install (
   Boolean $login_required,
   Boolean $metrics_enabled,
   Boolean $prefer_ipv4,
+  Boolean $run_update_script,
   Array $exempt_view_permissions,
   Optional[String] $napalm_username,
   Optional[String] $napalm_password,
@@ -415,7 +419,7 @@ class netbox::install (
     path        => '/usr/bin',
     cwd         => $software_directory_with_version,
     timeout     => 600,
-    onlyif      => bool2str($facts['netbox_version_installed'] != $version),
+    onlyif      => bool2str($run_update_script),
   }
 
   # Create symlink /opt/netbox/
