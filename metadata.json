@@ -1,37 +1,69 @@
 {
   "name": "ash-netbox",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "author": "ash",
   "summary": "Installs and configures Netbox and optionally its dependencies, like PostgreSQL and redis",
   "license": "Apache-2.0",
-  "source": "https://github.com/anderssh/ash-netbox",
-  "project_page": "https://github.com/anderssh/ash-netbox",
-  "issues_url": "https://github.com/anderssh/ash-netbox/issues",
+  "source": "https://github.com/EncoreTechnologies/ash-netbox",
+  "project_page": "https://github.com/EncoreTechnologies/ash-netbox",
+  "issues_url": "https://github.com/EncoreTechnologies/ash-netbox/issues",
   "dependencies": [
-    {
-      "name": "puppetlabs-stdlib",
-      "version_requirement": ">= 1.0.0"
-    }
+      {
+          "name": "puppetlabs/stdlib",
+          "version_requirement": ">= 8.5.0 < 9.0.0"
+      },
+      {
+          "name": "puppetlabs/postgresql",
+          "version_requirement": ">= 8.2.1 < 9.0.0"
+      },
+      {
+          "name": "puppet/redis",
+          "version_requirement": ">= 8.8.0 < 9.0.0"
+      },
+      {
+          "name": "puppet/firewalld",
+          "version_requirement": ">= 4.5.1 < 5.0.0"
+      },
+      {
+          "name": "puppet/systemd",
+          "version_requirement": ">= 4.0.1 < 5.0.0"
+      },
+      {
+          "name": "ghoneycutt/facter",
+          "version_requirement": ">= 3.5.0 < 4.0.0"
+      },
+      {
+          "name": "puppet/archive",
+          "version_requirement": ">= 6.1.1 < 7.0.0"
+      },
+      {
+          "name": "puppet/python",
+          "version_requirement": ">= 6.4.0 < 7.0.0"
+      },
+      {
+          "name": "puppetlabs/yumrepo_core",
+          "version_requirement": ">= 1.2.0 < 2.0.0"
+      }
   ],
   "operatingsystem_support": [
-    {
-      "operatingsystem": "CentOS",
-      "operatingsystemrelease": [
-        "8"
-      ]
-    },
-    {
-      "operatingsystem": "RedHat",
-      "operatingsystemrelease": [
-        "8"
-      ]
-    }
+      {
+          "operatingsystem": "CentOS",
+          "operatingsystemrelease": [
+              "8"
+          ]
+      },
+      {
+          "operatingsystem": "RedHat",
+          "operatingsystemrelease": [
+              "8"
+          ]
+      }
   ],
   "requirements": [
-    {
-      "name": "puppet",
-      "version_requirement": ">= 4.10.0 < 7.0.0"
-    }
+      {
+          "name": "puppet",
+          "version_requirement": ">= 4.10.0 < 7.0.0"
+      }
   ],
   "pdk-version": "2.1.0",
   "template-url": "pdk-default#2.1.0",

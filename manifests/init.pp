@@ -81,17 +81,6 @@
 # @param handle_redis
 #   Should the Redis installation be handled by this module. Defaults to true.
 #
-# @param install_dependencies_from_filesystem
-#   Used if your machine can't reach the place pip would normally go to fetch dependencies
-#   as it would when running "pip install -r requirements.txt". Then you would have to
-#   fetch those dependencies beforehand and put them somewhere your machine can reach.
-#   This can be done by running (on a machine that can reach pip's normal sources) the following:
-#   pip download -r <requirements.txt>  -d <destination>
-#   Remember to do this on local_requirements.txt also if you have one.
-#
-# @param python_dependency_path
-#   Path to where pip can find packages when the variable $install_dependencies_from_filesystem is true
-#
 # @param database_name
 #   Name of the PostgreSQL database. If handle_database is true, then this database
 #   gets created as well. If not, then it is only used by the application, and needs to exist.
@@ -114,6 +103,9 @@
 # @param database_locale
 #   Locale of the PostgreSQL database. If handle_database is false, this does nothing.
 #   Defaults to 'en_US.UTF-8''
+#
+# @param database_version
+#   Version of postgres to use
 #
 # @param database_host
 #   Name of the PostgreSQL database host. Defaults to 'localhost'
@@ -212,32 +204,66 @@
 #   Date/time formatting. See the following link for supported formats:
 #   https://docs.djangoproject.com/en/stable/ref/templates/builtins/#date
 #
+# @param python_version
+#   Python version to use for netbox
+#
+# @param log_dir_path
+#   Directory where log files are stored
+#
+# @param log_file
+#   Name of log file to store logs
+#
+# @param log_file_max_bytes
+#   Determines in bytes how big a log file can be before rotating
+#
+# @param num_of_log_backups
+#   Determines number of log files to keep as backup
+#
+# @param ldap_server
+#   FQDN of ldap server
+#
+# @param ldap_service_account_cn
+#   Netbox service account cn
+#
+# @param ldap_service_account_password
+#   Netbox service account password
+#
+# @param ldap_service_account_ou
+#   Netbox service account ou
+#
+# @param ldap_dc
+#   Complete dc to lookup when searching for users
+#   Example: dc=example,dc=com
+#
+# @param ldap_netbox_group_ou
+#   OU to seach when looking for netbox related CN's
+#
+# @param ldap_netbox_ro_user_cn
+#   CN of netbox group for read only access
+#
+# @param ldap_netbox_admin_user_cn
+#   CN of netbox group for admin access
+#
+# @param ldap_netbox_super_user_cn
+#   CN of netbox group for super user access
+#
 # @example Defaults
 #   class { 'netbox':
 #     secret_key => $my_secret_variable
 #   }
 #
-# @example Downloading from a different repository
-#   class { 'netbox':
-#     version           => 'x.y.z',
-#     download_url      => 'https://my.local.repo.example.com/netbox/netbox-x.y.z.tar.gz',
-#     download_checksum => 'abcde...',
-#   }
-#
 class netbox (
   String $secret_key,
-  String $version = '2.10.1',
-  String $download_url = 'https://github.com/netbox-community/netbox/archive/v2.10.1.tar.gz',
-  String $download_checksum = 'b827c520e4c82842e426a5f9ad2d914d1728a3671e304d5f25eb06392c24866c',
-  Stdlib::Absolutepath $download_tmp_dir = '/var/tmp',
+  String $version = '3.4.6',
+  String $download_url = "https://github.com/netbox-community/netbox/archive/refs/tags/v${version}.tar.gz",
+  String $download_checksum = '505e4551f6420a70265e927a2ad7b2fabbea5d917e396abaf410713d80fd2736',
+  Stdlib::Absolutepath $download_tmp_dir = '/tmp',
   String $user = 'netbox',
   String $group = 'netbox',
   String $download_checksum_type = 'sha256',
   Stdlib::Absolutepath $install_root = '/opt',
   Boolean $handle_database = true,
   Boolean $handle_redis = true,
-  Boolean $install_dependencies_from_filesystem = false,
-  Stdlib::Absolutepath $python_dependency_path = '/srv/python_dependencies',
   Boolean $include_napalm = true,
   Boolean $include_django_storages = true,
   Boolean $include_ldap = true,
@@ -246,14 +272,15 @@ class netbox (
   String $database_password   = 'netbox',
   String $database_encoding   = 'UTF-8',
   String $database_locale     = 'en_US.UTF-8',
+  String $database_version    = '12',
   Stdlib::Host $database_host = 'localhost',
   Integer $database_port = 5432,
   Integer $database_conn_max_age = 300,
-  Array[Stdlib::Host] $allowed_hosts = ['netbox.exmple.com','localhost'],
-  String $banner_top = '',
-  String $banner_bottom = '',
-  String $banner_login = '',
-  String $base_path ='',
+  Array[Stdlib::Host] $allowed_hosts = ['netbox.example.com','localhost', '127.0.0.1'],
+  Optional[String] $banner_top = undef,
+  Optional[String] $banner_bottom = undef,
+  Optional[String] $banner_login = undef,
+  Optional[String] $base_path = undef,
   Array $admins = [],
   Boolean $debug = false,
   Boolean $enforce_global_unique = false,
@@ -261,15 +288,15 @@ class netbox (
   Boolean $metrics_enabled = false,
   Boolean $prefer_ipv4 = false,
   Array $exempt_view_permissions = [],
-  String $napalm_username = '',
-  String $napalm_password = '',
+  Optional[String] $napalm_username = undef,
+  Optional[String] $napalm_password = undef,
   Integer $napalm_timeout = 30,
   String $email_server = 'localhost',
   Integer $email_timeout = 10,
   Stdlib::Port $email_port = 25,
-  String $email_username = '',
-  String $email_password = '',
-  String $email_from_email = '',
+  Optional[String] $email_username = undef,
+  Optional[String] $email_password = undef,
+  Optional[String] $email_from_email = undef,
   String $time_zone = 'UTC',
   String $date_format = 'N j, Y',
   String $short_date_format = 'Y-m-d',
@@ -277,9 +304,24 @@ class netbox (
   String $short_time_format = 'H:i:s',
   String $datetime_format = 'N j, Y g:i a',
   String $short_datetime_format = 'Y-m-d H:i',
-) {
+  String $python_version = '3.8',
+  Optional[Stdlib::Absolutepath] $log_dir_path = undef,
+  Optional[String] $log_file = undef,
+  Integer $log_file_max_bytes = 1024 * 500,
+  Integer $num_of_log_backups = 5,
 
-  Class['netbox::install'] -> Class['netbox::config'] ~> Class['netbox::service']
+  # LDAP params
+  Optional[String] $ldap_server = undef,
+  Optional[String] $ldap_service_account_cn = undef,
+  Optional[String] $ldap_service_account_password = undef,
+  Optional[String] $ldap_service_account_ou = undef,
+  Optional[String] $ldap_dc = undef,
+  Optional[String] $ldap_netbox_group_ou = undef,
+  Optional[String] $ldap_netbox_ro_user_cn = undef,
+  Optional[String] $ldap_netbox_admin_user_cn = undef,
+  Optional[String] $ldap_netbox_super_user_cn = undef,
+) {
+  Class['netbox::download'] -> Class['netbox::install'] ~> Class['netbox::service']
 
   if $handle_database {
     class { 'netbox::database':
@@ -288,34 +330,32 @@ class netbox (
       database_password => $database_password,
       database_encoding => $database_encoding,
       database_locale   => $database_locale,
+      database_version  => $database_version,
     }
     if $handle_redis {
       Class['netbox::database'] -> Class['netbox::redis']
     } else {
-      Class['netbox::database'] -> Class['netbox::install']
+      Class['netbox::database'] -> Class['netbox::download']
     }
   }
 
   if $handle_redis {
     class { 'netbox::redis':
     }
-    Class['netbox::redis'] -> Class['netbox::install']
+    Class['netbox::redis'] -> Class['netbox::download']
   }
 
-  class { 'netbox::install':
-    install_root                         => $install_root,
-    version                              => $version,
-    user                                 => $user,
-    group                                => $group,
-    download_url                         => $download_url,
-    download_checksum                    => $download_checksum,
-    download_checksum_type               => $download_checksum_type,
-    download_tmp_dir                     => $download_tmp_dir,
-    include_napalm                       => $include_napalm,
-    include_django_storages              => $include_django_storages,
-    include_ldap                         => $include_ldap,
-    install_dependencies_from_filesystem => $install_dependencies_from_filesystem,
-    python_dependency_path               => $python_dependency_path,
+  $_software_directory = "${install_root}/netbox"
+
+  class { 'netbox::download':
+    install_root       => $install_root,
+    software_directory => $_software_directory,
+    version            => $version,
+    user               => $user,
+    group              => $group,
+    download_url       => $download_url,
+    download_tmp_dir   => $download_tmp_dir,
+    include_ldap       => $include_ldap,
   }
 
   $redis_options = {
@@ -346,46 +386,67 @@ class netbox (
     from_email => $email_from_email,
   }
 
-  class { 'netbox::config':
-    user                    => $user,
-    group                   => $group,
-    install_root            => $install_root,
-    allowed_hosts           => $allowed_hosts,
-    database_name           => $database_name,
-    database_user           => $database_user,
-    database_password       => $database_password,
-    database_host           => $database_host,
-    database_port           => $database_port,
-    database_conn_max_age   => $database_conn_max_age,
-    redis_options           => $redis_options,
-    email_options           => $email_options,
-    secret_key              => $secret_key,
-    admins                  => $admins,
-    banner_top              => $banner_top,
-    banner_bottom           => $banner_bottom,
-    banner_login            => $banner_login,
-    base_path               => $base_path,
-    debug                   => $debug,
-    enforce_global_unique   => $enforce_global_unique,
-    login_required          => $login_required,
-    metrics_enabled         => $metrics_enabled,
-    prefer_ipv4             => $prefer_ipv4,
-    exempt_view_permissions => $exempt_view_permissions,
-    napalm_username         => $napalm_username,
-    napalm_password         => $napalm_password,
-    napalm_timeout          => $napalm_timeout,
-    time_zone               => $time_zone,
-    date_format             => $date_format,
-    short_date_format       => $short_date_format,
-    time_format             => $time_format,
-    short_time_format       => $short_time_format,
-    datetime_format         => $datetime_format,
-    short_datetime_format   => $short_datetime_format,
+  class { 'netbox::install':
+    version                       => $version,
+    software_directory            => $_software_directory,
+    user                          => $user,
+    group                         => $group,
+    allowed_hosts                 => $allowed_hosts,
+    database_version              => $database_version,
+    database_name                 => $database_name,
+    database_user                 => $database_user,
+    database_password             => $database_password,
+    database_host                 => $database_host,
+    database_port                 => $database_port,
+    database_conn_max_age         => $database_conn_max_age,
+    redis_options                 => $redis_options,
+    email_options                 => $email_options,
+    secret_key                    => $secret_key,
+    admins                        => $admins,
+    banner_top                    => $banner_top,
+    banner_bottom                 => $banner_bottom,
+    banner_login                  => $banner_login,
+    base_path                     => $base_path,
+    debug                         => $debug,
+    enforce_global_unique         => $enforce_global_unique,
+    login_required                => $login_required,
+    metrics_enabled               => $metrics_enabled,
+    prefer_ipv4                   => $prefer_ipv4,
+    run_update_script             => $facts['netbox_version_installed'] != $version,
+    exempt_view_permissions       => $exempt_view_permissions,
+    napalm_username               => $napalm_username,
+    napalm_password               => $napalm_password,
+    napalm_timeout                => $napalm_timeout,
+    time_zone                     => $time_zone,
+    date_format                   => $date_format,
+    short_date_format             => $short_date_format,
+    time_format                   => $time_format,
+    short_time_format             => $short_time_format,
+    datetime_format               => $datetime_format,
+    short_datetime_format         => $short_datetime_format,
+    include_napalm                => $include_napalm,
+    include_django_storages       => $include_django_storages,
+    include_ldap                  => $include_ldap,
+    python_version                => $python_version,
+    log_dir_path                  => $log_dir_path,
+    log_file                      => $log_file,
+
+    # LDAP params
+    ldap_server                   => $ldap_server,
+    ldap_service_account_cn       => $ldap_service_account_cn,
+    ldap_service_account_password => $ldap_service_account_password,
+    ldap_service_account_ou       => $ldap_service_account_ou,
+    ldap_dc                       => $ldap_dc,
+    ldap_netbox_group_ou          => $ldap_netbox_group_ou,
+    ldap_netbox_ro_user_cn        => $ldap_netbox_ro_user_cn,
+    ldap_netbox_admin_user_cn     => $ldap_netbox_admin_user_cn,
+    ldap_netbox_super_user_cn     => $ldap_netbox_super_user_cn,
   }
 
-  class {'netbox::service':
-    install_root => $install_root,
-    user         => $user,
-    group        => $group,
+  class { 'netbox::service':
+    software_directory => $_software_directory,
+    user               => $user,
+    group              => $group,
+    restart_service    => $facts['netbox_version_installed'] != $version,
   }
 }

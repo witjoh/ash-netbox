@@ -1,4 +1,4 @@
-<% | 
+<% |
   Array[Stdlib::Host] $allowed_hosts,
   String $database_name,
   String $database_user,
@@ -9,10 +9,10 @@
   Hash $redis_options,
   Hash $email_options,
   String $secret_key,
-  String $banner_top,
-  String $banner_bottom,
-  String $banner_login,
-  String $base_path,
+  Optional[String] $banner_top,
+  Optional[String] $banner_bottom,
+  Optional[String] $banner_login,
+  Optional[String] $base_path,
   Array $admins,
   Boolean $debug,
   Boolean $enforce_global_unique,
@@ -20,16 +20,18 @@
   Boolean $metrics_enabled,
   Boolean $prefer_ipv4,
   Array $exempt_view_permissions,
-  String $napalm_username,
-  String $napalm_password,
+  Optional[String] $napalm_username,
+  Optional[String] $napalm_password,
   Integer $napalm_timeout,
   String $time_zone,
   String $date_format,
-  String $short_date_format, 
+  String $short_date_format,
   String $time_format,
-  String $short_time_format, 
+  String $short_time_format,
   String $datetime_format,
   String $short_datetime_format,
+  Boolean $include_ldap,
+  Optional[String] $log_file
   | -%>
 
 #########################
@@ -257,3 +259,7 @@ TIME_FORMAT = '<%= $time_format %>'
 SHORT_TIME_FORMAT = '<%= $short_time_format %>'
 DATETIME_FORMAT = '<%= $datetime_format %>'
 SHORT_DATETIME_FORMAT = '<%= $short_datetime_format %>'
+<% if $include_ldap { -%>
+REMOTE_AUTH_BACKEND = 'netbox.authentication.LDAPBackend'
+<% } -%>
+

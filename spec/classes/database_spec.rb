@@ -11,6 +11,7 @@ describe 'netbox::database' do
           database_password: 'testdbpass',
           database_encoding: 'UTF-8',
           database_locale: 'en_US.UTF-8',
+          database_version: '12',
         }
       end
 
