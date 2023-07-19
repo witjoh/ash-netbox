@@ -439,7 +439,7 @@ class netbox::install (
 
   if $log_dir_path and $log_file {
     exec { 'create log dir':
-      command => "mkdir -p ${log_dir_path}",
+      command => "mkdir -p ${log_dir_path} && chown ${$user}:${$group} ${log_dir_path}",
       path    => '/usr/bin',
       require => File[$software_directory],
     }
