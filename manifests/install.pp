@@ -295,8 +295,7 @@ class netbox::install (
       require => File['local_requirements'],
     }
 
-    include firewalld
-    firewalld::custom_service { 'napalm':
+    firewalld_custom_service { 'napalm':
       ensure => 'present',
       port   => [
         {
