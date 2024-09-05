@@ -278,6 +278,8 @@ class netbox::install (
 
   if $log_dir_path and $log_file {
     $_log_file_path = "${log_dir_path}${log_file}"
+  } else {
+    $_log_file_path = undef
   }
 
   file { 'local_requirements':
