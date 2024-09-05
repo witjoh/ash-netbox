@@ -72,6 +72,6 @@ class netbox::database (
   }
 
   facter::fact { 'postgres_installed':
-    value => true,
+    value => 'true',
   }
 }
