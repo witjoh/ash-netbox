@@ -97,9 +97,6 @@
 #   When determining the primary IP address for a device, IPv6 is preferred over IPv4 by default. Set this to True to
 #   prefer IPv4 instead.
 #
-# @param run_update_script
-#   Determines whether to run update script or not
-#
 # @param exempt_view_permissions
 #   Exempt certain models from the enforcement of view permissions. Models listed here will be viewable by all users and
 #   by anonymous users. List models in the form `<app>.<model>`. Add '*' to this list to exempt all models.
@@ -224,7 +221,6 @@ class netbox::install (
   Boolean $login_required,
   Boolean $metrics_enabled,
   Boolean $prefer_ipv4,
-  Boolean $run_update_script,
   Array $exempt_view_permissions,
   Optional[String] $napalm_username,
   Optional[String] $napalm_password,
@@ -394,33 +390,22 @@ class netbox::install (
     mode    => '0644',
   }
 
-  $_tmp_venv = "${software_directory_with_version}/tmp_venv"
-
-  # This tmp venv is created because the latest versions of netbox
-  # (as of this writing) requires at least python3.8 to run the upgrade script
-  # so instead of messing with python at OS level, just create tmp venv
-  # to run script
-  python::pyvenv { $_tmp_venv:
-    ensure   => present,
-    version  => $python_version,
-    venv_dir => $_tmp_venv,
-    owner    => $user,
-    group    => $group,
-    before   => Exec['upgrade script'],
-  }
+  $_unless_cmd = @("CMD"/L$)
+    /usr/bin/grep \$(/usr/bin/python${python_version} --version | /usr/bin/cut -d ' ' -f2) \
+    ${software_directory_with_version}/venv/pyvenv.cfg 2>/dev/null
+    | CMD
 
   exec { 'upgrade script':
     command     => "${software_directory_with_version}/upgrade.sh",
-    environment => ["PYTHON=${_tmp_venv}/bin/python"],
+    user        => $user,
+    group       => $group,
+    unless      => $_unless_cmd,
+    environment => ["PYTHON=/usr/bin/python${python_version}"],
     require     => [
       File[$config_file],
-      Service['redis'],
-      Service["postgresql-${database_version}"]
     ],
-    path        => '/usr/bin',
     cwd         => $software_directory_with_version,
     timeout     => 600,
-    onlyif      => bool2str($run_update_script),
   }
 
   # Create symlink /opt/netbox/
@@ -460,10 +445,5 @@ class netbox::install (
     owner   => $user,
     group   => $group,
     require => File[$software_directory],
-  }
-
-  facter::fact { 'netbox_version_installed':
-    value   => $version,
-    require => Exec['upgrade script'],
   }
 }

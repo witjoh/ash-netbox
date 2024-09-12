@@ -413,7 +413,6 @@ class netbox (
     login_required                => $login_required,
     metrics_enabled               => $metrics_enabled,
     prefer_ipv4                   => $prefer_ipv4,
-    run_update_script             => $facts['netbox_version_installed'] != $version,
     exempt_view_permissions       => $exempt_view_permissions,
     napalm_username               => $napalm_username,
     napalm_password               => $napalm_password,
