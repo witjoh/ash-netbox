@@ -11,7 +11,6 @@ describe 'netbox::install' do
           group: 'testgroup',
           software_directory: '/opt/netbox',
           allowed_hosts: ['0.0.0.0/0'],
-          database_version: '12',
           database_name: 'testdb',
           database_user: 'testdbuser',
           database_password: 'testdbpass',
