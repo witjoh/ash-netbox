@@ -432,7 +432,7 @@ class netbox (
     log_dir_path                  => $log_dir_path,
     log_file                      => $log_file,
 
-    # LDAP params
+    # LDAP parameters
     ldap_server                   => $ldap_server,
     ldap_service_account_cn       => $ldap_service_account_cn,
     ldap_service_account_password => $ldap_service_account_password,

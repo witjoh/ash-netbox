@@ -238,15 +238,15 @@ class netbox::install (
   Integer $num_of_log_backups = 5,
 
   # LDAP params
-  Optional[String] $ldap_server,
-  Optional[String] $ldap_service_account_cn,
-  Optional[String] $ldap_service_account_password,
-  Optional[String] $ldap_service_account_ou,
-  Optional[String] $ldap_dc,
-  Optional[String] $ldap_netbox_group_ou,
-  Optional[String] $ldap_netbox_ro_user_cn,
-  Optional[String] $ldap_netbox_admin_user_cn,
-  Optional[String] $ldap_netbox_super_user_cn,
+  Optional[String] $ldap_server = undef,
+  Optional[String] $ldap_service_account_cn = undef,
+  Optional[String] $ldap_service_account_password = undef,
+  Optional[String] $ldap_service_account_ou = undef,
+  Optional[String] $ldap_dc = undef,
+  Optional[String] $ldap_netbox_group_ou = undef,
+  Optional[String] $ldap_netbox_ro_user_cn = undef,
+  Optional[String] $ldap_netbox_admin_user_cn = undef,
+  Optional[String] $ldap_netbox_super_user_cn = undef,
 ) {
   $software_directory_with_version = "${software_directory}-${version}"
   $venv_dir = "${software_directory_with_version}/venv"
