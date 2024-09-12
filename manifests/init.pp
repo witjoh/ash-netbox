@@ -331,6 +331,7 @@ class netbox (
       database_encoding => $database_encoding,
       database_locale   => $database_locale,
       database_version  => $database_version,
+      before            => Class['netbox::install'],
     }
     if $handle_redis {
       Class['netbox::database'] -> Class['netbox::redis']
@@ -341,8 +342,9 @@ class netbox (
 
   if $handle_redis {
     class { 'netbox::redis':
+      before  => Class['netbox::install'],
+      require => Class['netbox::download'],
     }
-    Class['netbox::redis'] -> Class['netbox::download']
   }
 
   $_software_directory = "${install_root}/netbox"

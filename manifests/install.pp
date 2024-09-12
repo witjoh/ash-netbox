@@ -291,7 +291,7 @@ class netbox::install (
 
     firewalld_custom_service { 'napalm':
       ensure => 'present',
-      port   => [
+      ports  => [
         {
           port     => 830,
           protocol => 'tcp',
