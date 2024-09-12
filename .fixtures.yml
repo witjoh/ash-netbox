@@ -6,7 +6,10 @@ fixtures:
     archive: "puppet/archive"
     augeas_core: "puppetlabs/augeas_core"
     concat: "puppetlabs/concat"
+    firewalld: 'puppet/firewalld'
     postgresql: "puppetlabs/postgresql"
     redis: "puppet/redis"
     stdlib: "puppetlabs/stdlib"
-    systemd: "camptocamp/systemd"
+    systemd: "puppet/systemd"
+    yum: 'puppet-yum'
+    yumrepo_core: 'puppetlabs-yumrepo_core'
