@@ -97,6 +97,7 @@ class netbox::download (
     extract      => true,
     extract_path => $install_root,
     cleanup      => true,
+    creates      => "${software_directory_with_version}/base_requirements.txt",
     user         => $user,
     group        => $group,
     require      => File[$software_directory_with_version],
