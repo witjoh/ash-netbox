@@ -31,26 +31,17 @@ class netbox::database (
   String $database_locale,
   String $database_version,
 ) {
-  if str2bool($facts['postgres_installed']) != true and $facts['os']['family'] == 'RedHat' and
-  $facts['os']['release']['major'] == '8' {
-    exec { 'postgresql reset':
-      command => 'yes | dnf module reset postgresql',
-      path    => '/bin',
-      before  => Exec['postgresql disable'],
-    }
-
-    exec { 'postgresql disable':
-      command => 'yes | dnf module disable postgresql',
-      path    => '/bin',
-      before  => Class['postgresql::globals'],
-    }
+  if $facts['os']['family'] == 'RedHat' and $facts['os']['release']['major'] == '8' {
+    $manage_dnf_module = true
+  } else {
+    $manage_dnf_module = false
   }
 
   class { 'postgresql::globals':
-    encoding            => $database_encoding,
-    locale              => $database_locale,
-    version             => $database_version,
-    manage_package_repo => true,
+    encoding          => $database_encoding,
+    locale            => $database_locale,
+    version           => $database_version,
+    manage_dnf_module => $manage_dnf_module,
   }
   ->class { 'postgresql::server':
   }
@@ -69,9 +60,5 @@ class netbox::database (
   firewalld_service { 'postgresql':
     ensure => 'present',
     zone   => 'public',
-  }
-
-  facter::fact { 'postgres_installed':
-    value => 'true',
   }
 }
