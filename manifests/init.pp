@@ -351,6 +351,7 @@ class netbox (
     install_root       => $install_root,
     software_directory => $_software_directory,
     version            => $version,
+    python_version     => $python_version,
     user               => $user,
     group              => $group,
     download_url       => $download_url,

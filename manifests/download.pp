@@ -13,6 +13,9 @@
 #   tarball. This is used for managing files, directories and paths in
 #   the service.
 #
+# @param python_version
+#   The python version to be installed to be used by netbox
+#
 # @param download_url
 #   Where to download the binary installation tarball from.
 #
@@ -36,21 +39,28 @@ class netbox::download (
   Stdlib::Absolutepath $install_root,
   Stdlib::Absolutepath $software_directory,
   String $version,
+  String $python_version,
   String $download_url,
   Stdlib::Absolutepath $download_tmp_dir,
   String $user,
   String $group,
   Boolean $include_ldap,
 ) {
+  $_pversion = $python_version ? {
+    '3.8'   => '38',
+    '3.9'   => '39',
+    default => $python_version,
+  }
+
   $packages = [
-    gcc,
-    python38,
-    python38-devel,
-    libxml2-devel,
-    libxslt-devel,
-    libffi-devel,
-    openssl-devel,
-    redhat-rpm-config,
+    'gcc',
+    "python${_pversion}",
+    "python${_pversion}-devel",
+    'libxml2-devel',
+    'libxslt-devel',
+    'libffi-devel',
+    'openssl-devel',
+    'redhat-rpm-config',
   ]
 
   $local_tarball = "${download_tmp_dir}/netbox-${version}.tar.gz"
