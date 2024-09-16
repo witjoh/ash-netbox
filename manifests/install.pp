@@ -313,6 +313,16 @@ class netbox::install (
     }
   }
 
+  # See https://github.com/netbox-community/netbox/issues/12415
+  if versioncmp('3.5.1', $version) > 0 {
+    file_line {'rq == 1.13.0':
+      path => "${software_directory_with_version}/local_requirements.txt",
+      line => 'rq == 1.13.0',
+      require => File['local_requirements'],
+    }
+  }
+
+
   if $include_ldap {
     file_line { 'ldap':
       path    => "${software_directory_with_version}/local_requirements.txt",
