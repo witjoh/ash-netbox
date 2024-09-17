@@ -253,7 +253,7 @@
 #   }
 #
 class netbox (
-  String $secret_key,
+  Sensitive[String[1]] $secret_key,
   String $version = '3.4.6',
   String $download_url = "https://github.com/netbox-community/netbox/archive/refs/tags/v${version}.tar.gz",
   String $download_checksum = '505e4551f6420a70265e927a2ad7b2fabbea5d917e396abaf410713d80fd2736',
@@ -269,7 +269,7 @@ class netbox (
   Boolean $include_ldap = true,
   String $database_name       = 'netbox',
   String $database_user       = 'netbox',
-  String $database_password   = 'netbox',
+  Sensitive[String] $database_password   = 'netbox',
   String $database_encoding   = 'UTF-8',
   String $database_locale     = 'en_US.UTF-8',
   String $database_version    = '12',
@@ -289,13 +289,13 @@ class netbox (
   Boolean $prefer_ipv4 = false,
   Array $exempt_view_permissions = [],
   Optional[String] $napalm_username = undef,
-  Optional[String] $napalm_password = undef,
+  Optional[Sensitive[String]] $napalm_password = undef,
   Integer $napalm_timeout = 30,
   String $email_server = 'localhost',
   Integer $email_timeout = 10,
   Stdlib::Port $email_port = 25,
   Optional[String] $email_username = undef,
-  Optional[String] $email_password = undef,
+  Optional[Sensitive[String]] $email_password = undef,
   Optional[String] $email_from_email = undef,
   String $time_zone = 'UTC',
   String $date_format = 'N j, Y',
@@ -313,7 +313,7 @@ class netbox (
   # LDAP params
   Optional[String] $ldap_server = undef,
   Optional[String] $ldap_service_account_cn = undef,
-  Optional[String] $ldap_service_account_password = undef,
+  Optional[Sensitive[String]] $ldap_service_account_password = undef,
   Optional[String] $ldap_service_account_ou = undef,
   Optional[String] $ldap_dc = undef,
   Optional[String] $ldap_netbox_group_ou = undef,

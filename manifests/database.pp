@@ -26,7 +26,7 @@
 class netbox::database (
   String $database_name,
   String $database_user,
-  String $database_password,
+  Sensitive[String] $database_password,
   String $database_encoding,
   String $database_locale,
   String $database_version,

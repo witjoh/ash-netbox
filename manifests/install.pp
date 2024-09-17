@@ -200,13 +200,13 @@ class netbox::install (
   Array[Stdlib::Host] $allowed_hosts,
   String $database_name,
   String $database_user,
-  String $database_password,
+  Sensitive[String] $database_password,
   Stdlib::Host $database_host,
   Integer $database_port,
   Integer $database_conn_max_age,
   Hash $redis_options,
   Hash $email_options,
-  String $secret_key,
+  Sensitive[String] $secret_key,
   Array $admins,
   Optional[String] $banner_top,
   Optional[String] $banner_bottom,
@@ -219,7 +219,7 @@ class netbox::install (
   Boolean $prefer_ipv4,
   Array $exempt_view_permissions,
   Optional[String] $napalm_username,
-  Optional[String] $napalm_password,
+  Optional[Sensitive[String]] $napalm_password,
   Integer $napalm_timeout,
   String $time_zone,
   String $date_format,
@@ -240,7 +240,7 @@ class netbox::install (
   # LDAP params
   Optional[String] $ldap_server = undef,
   Optional[String] $ldap_service_account_cn = undef,
-  Optional[String] $ldap_service_account_password = undef,
+  Optional[Sensitive[String]] $ldap_service_account_password = undef,
   Optional[String] $ldap_service_account_ou = undef,
   Optional[String] $ldap_dc = undef,
   Optional[String] $ldap_netbox_group_ou = undef,
@@ -315,13 +315,12 @@ class netbox::install (
 
   # See https://github.com/netbox-community/netbox/issues/12415
   if versioncmp('3.5.1', $version) > 0 {
-    file_line {'rq == 1.13.0':
-      path => "${software_directory_with_version}/local_requirements.txt",
-      line => 'rq == 1.13.0',
+    file_line { 'rq == 1.13.0':
+      path    => "${software_directory_with_version}/local_requirements.txt",
+      line    => 'rq == 1.13.0',
       require => File['local_requirements'],
     }
   }
-
 
   if $include_ldap {
     file_line { 'ldap':
