@@ -43,8 +43,8 @@ class netbox::database (
     version           => $database_version,
     manage_dnf_module => $manage_dnf_module,
   }
-  ->class { 'postgresql::server':
-  }
+
+  include postgresql::server
 
   postgresql::server::db { $database_name:
     user     => $database_user,
