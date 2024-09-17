@@ -331,6 +331,7 @@ class netbox (
       database_encoding => $database_encoding,
       database_locale   => $database_locale,
       database_version  => $database_version,
+      before            => Class['netbox::install'],
     }
     if $handle_redis {
       Class['netbox::database'] -> Class['netbox::redis']
@@ -341,8 +342,9 @@ class netbox (
 
   if $handle_redis {
     class { 'netbox::redis':
+      before  => Class['netbox::install'],
+      require => Class['netbox::download'],
     }
-    Class['netbox::redis'] -> Class['netbox::download']
   }
 
   $_software_directory = "${install_root}/netbox"
@@ -351,6 +353,7 @@ class netbox (
     install_root       => $install_root,
     software_directory => $_software_directory,
     version            => $version,
+    python_version     => $python_version,
     user               => $user,
     group              => $group,
     download_url       => $download_url,
@@ -392,7 +395,6 @@ class netbox (
     user                          => $user,
     group                         => $group,
     allowed_hosts                 => $allowed_hosts,
-    database_version              => $database_version,
     database_name                 => $database_name,
     database_user                 => $database_user,
     database_password             => $database_password,
@@ -412,7 +414,6 @@ class netbox (
     login_required                => $login_required,
     metrics_enabled               => $metrics_enabled,
     prefer_ipv4                   => $prefer_ipv4,
-    run_update_script             => $facts['netbox_version_installed'] != $version,
     exempt_view_permissions       => $exempt_view_permissions,
     napalm_username               => $napalm_username,
     napalm_password               => $napalm_password,
@@ -431,7 +432,7 @@ class netbox (
     log_dir_path                  => $log_dir_path,
     log_file                      => $log_file,
 
-    # LDAP params
+    # LDAP parameters
     ldap_server                   => $ldap_server,
     ldap_service_account_cn       => $ldap_service_account_cn,
     ldap_service_account_password => $ldap_service_account_password,

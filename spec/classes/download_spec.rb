@@ -9,6 +9,7 @@ describe 'netbox::download' do
           install_root: '/opt',
           software_directory: '/opt/netbox',
           version: '1.0.0',
+          python_version: '3.12',
           download_url: 'https://example.com/netbox-1.0.0.tar.gz',
           download_tmp_dir: '/tmp',
           user: 'test',

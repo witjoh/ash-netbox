@@ -7,6 +7,7 @@ describe 'netbox' do
       let(:params) do
         {
           secret_key: 'test secret key',
+          include_ldap: false,
         }
       end
 

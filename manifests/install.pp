@@ -20,9 +20,6 @@
 #   Array of valid fully-qualified domain names (FQDNs) for the NetBox server. NetBox will not permit write
 #   access to the server via any other hostnames. The first FQDN in the list will be treated as the preferred name.
 #
-# @param database_version
-#   Version of the PostgreSQL database
-#
 # @param database_name
 #   Name of the PostgreSQL database. If handle_database is true, then this database
 #   gets created as well. If not, then it is only used by the application, and needs to exist.
@@ -96,9 +93,6 @@
 # @param prefer_ipv4
 #   When determining the primary IP address for a device, IPv6 is preferred over IPv4 by default. Set this to True to
 #   prefer IPv4 instead.
-#
-# @param run_update_script
-#   Determines whether to run update script or not
 #
 # @param exempt_view_permissions
 #   Exempt certain models from the enforcement of view permissions. Models listed here will be viewable by all users and
@@ -204,7 +198,6 @@ class netbox::install (
   String $user,
   String $group,
   Array[Stdlib::Host] $allowed_hosts,
-  String $database_version,
   String $database_name,
   String $database_user,
   String $database_password,
@@ -224,7 +217,6 @@ class netbox::install (
   Boolean $login_required,
   Boolean $metrics_enabled,
   Boolean $prefer_ipv4,
-  Boolean $run_update_script,
   Array $exempt_view_permissions,
   Optional[String] $napalm_username,
   Optional[String] $napalm_password,
@@ -246,15 +238,15 @@ class netbox::install (
   Integer $num_of_log_backups = 5,
 
   # LDAP params
-  Optional[String] $ldap_server,
-  Optional[String] $ldap_service_account_cn,
-  Optional[String] $ldap_service_account_password,
-  Optional[String] $ldap_service_account_ou,
-  Optional[String] $ldap_dc,
-  Optional[String] $ldap_netbox_group_ou,
-  Optional[String] $ldap_netbox_ro_user_cn,
-  Optional[String] $ldap_netbox_admin_user_cn,
-  Optional[String] $ldap_netbox_super_user_cn,
+  Optional[String] $ldap_server = undef,
+  Optional[String] $ldap_service_account_cn = undef,
+  Optional[String] $ldap_service_account_password = undef,
+  Optional[String] $ldap_service_account_ou = undef,
+  Optional[String] $ldap_dc = undef,
+  Optional[String] $ldap_netbox_group_ou = undef,
+  Optional[String] $ldap_netbox_ro_user_cn = undef,
+  Optional[String] $ldap_netbox_admin_user_cn = undef,
+  Optional[String] $ldap_netbox_super_user_cn = undef,
 ) {
   $software_directory_with_version = "${software_directory}-${version}"
   $venv_dir = "${software_directory_with_version}/venv"
@@ -299,7 +291,7 @@ class netbox::install (
 
     firewalld_custom_service { 'napalm':
       ensure => 'present',
-      port   => [
+      ports  => [
         {
           port     => 830,
           protocol => 'tcp',
@@ -320,6 +312,16 @@ class netbox::install (
       require => File['local_requirements'],
     }
   }
+
+  # See https://github.com/netbox-community/netbox/issues/12415
+  if versioncmp('3.5.1', $version) > 0 {
+    file_line {'rq == 1.13.0':
+      path => "${software_directory_with_version}/local_requirements.txt",
+      line => 'rq == 1.13.0',
+      require => File['local_requirements'],
+    }
+  }
+
 
   if $include_ldap {
     file_line { 'ldap':
@@ -394,33 +396,22 @@ class netbox::install (
     mode    => '0644',
   }
 
-  $_tmp_venv = "${software_directory_with_version}/tmp_venv"
-
-  # This tmp venv is created because the latest versions of netbox
-  # (as of this writing) requires at least python3.8 to run the upgrade script
-  # so instead of messing with python at OS level, just create tmp venv
-  # to run script
-  python::pyvenv { $_tmp_venv:
-    ensure   => present,
-    version  => $python_version,
-    venv_dir => $_tmp_venv,
-    owner    => $user,
-    group    => $group,
-    before   => Exec['upgrade script'],
-  }
+  $_unless_cmd = @("CMD"/L$)
+    /usr/bin/grep \$(/usr/bin/python${python_version} --version | /usr/bin/cut -d ' ' -f2) \
+    ${software_directory_with_version}/venv/pyvenv.cfg 2>/dev/null
+    | CMD
 
   exec { 'upgrade script':
     command     => "${software_directory_with_version}/upgrade.sh",
-    environment => ["PYTHON=${_tmp_venv}/bin/python"],
+    user        => $user,
+    group       => $group,
+    unless      => $_unless_cmd,
+    environment => ["PYTHON=/usr/bin/python${python_version}"],
     require     => [
       File[$config_file],
-      Service['redis'],
-      Service["postgresql-${database_version}"]
     ],
-    path        => '/usr/bin',
     cwd         => $software_directory_with_version,
     timeout     => 600,
-    onlyif      => bool2str($run_update_script),
   }
 
   # Create symlink /opt/netbox/
@@ -460,10 +451,5 @@ class netbox::install (
     owner   => $user,
     group   => $group,
     require => File[$software_directory],
-  }
-
-  facter::fact { 'netbox_version_installed':
-    value   => $version,
-    require => Exec['upgrade script'],
   }
 }

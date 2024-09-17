@@ -6,7 +6,8 @@ describe 'netbox::service' do
       let(:facts) { os_facts }
       let(:params) do
         {
-          install_root: '/opt',
+          software_directory: '/opt/netbox',
+          restart_service: true,
           user: 'testuser',
           group: 'testpass',
         }
