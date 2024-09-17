@@ -6,8 +6,9 @@ describe 'netbox' do
       let(:facts) { os_facts }
       let(:params) do
         {
-          secret_key: 'test secret key',
+          secret_key: sensitive('test secret key'),
           include_ldap: false,
+          database_password: sensitive('very secure'),
         }
       end
 

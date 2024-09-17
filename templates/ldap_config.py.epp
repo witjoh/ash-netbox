@@ -1,7 +1,7 @@
 <% |
     String $server,
     String $service_account_cn,
-    String $service_account_password,
+    Sensitive[String] $service_account_password,
     String $service_account_ou,
     String $dc,
     String $netbox_group_ou,

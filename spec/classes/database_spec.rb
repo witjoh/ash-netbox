@@ -8,7 +8,7 @@ describe 'netbox::database' do
         {
           database_name: 'testdb',
           database_user: 'testdbuser',
-          database_password: 'testdbpass',
+          database_password: sensitive('testdbpass'),
           database_encoding: 'UTF-8',
           database_locale: 'en_US.UTF-8',
           database_version: '12',
