@@ -401,7 +401,7 @@ class netbox::install (
     | CMD
 
   exec { 'upgrade script':
-    command     => "${software_directory_with_version}/upgrade.sh",
+    command     => "${software_directory_with_version}/upgrade.sh || { rm ${software_directory_with_version}/venv/pyvenv.cfg && exit 1; }",
     user        => $user,
     group       => $group,
     unless      => $_unless_cmd,
