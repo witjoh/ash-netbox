@@ -15,15 +15,15 @@
 
 ## Description
 
-Puppet module for installing and configuring Netbox, an IPAM (IP Adress Management) tool initially conceived by the network engineering team at DigitalOcean. [The documentation for Netbox can be found here](https://netbox.readthedocs.io/) 
+Puppet module for installing and configuring Netbox, an IPAM (IP Adress Management) tool initially conceived by the network engineering team at DigitalOcean. [The documentation for Netbox can be found here](https://netbox.readthedocs.io/)
 
 ## Setup
 
 ### What netbox affects
 
-This module installs and configures Netbox. Netbox needs PostgreSQL and Redis to work, and this module can optionally handle that too. Netbox is a Python web applications built on the Django framework and uses the Gunicorn webserver. Usually you place a webserver (like Nginx og Apache) in front of it. This is not part of this module, but a configuration using Apache is provided. Everything in this module is made according to the [Netbox documentation](https://netbox.readthedocs.io/). As such, if something is not properly explained here, you can probably find answers to your questions there.
+This module installs and configures Netbox. Netbox needs PostgreSQL and Redis to work, and this module can optionally handle that too. Netbox is a Python web applications built on the Django framework and uses the Gunicorn webserver. Usually you place a webserver (like Nginx or Apache) in front of it. This is not part of this module, but a configuration using Apache is provided. Everything in this module is made according to the [Netbox documentation](https://netbox.readthedocs.io/). As such, if something is not properly explained here, you can probably find answers to your questions there.
 
-### Setup Requirements 
+### Setup Requirements
 
 You need to have epel configured. The easiest way to do that is by running:
 
@@ -37,7 +37,7 @@ This module has been tested with Apache HTTPD using the `puppetlabs-apache` modu
 
 Add dependency modules to your puppet environment:
 
-* camptocamp/systemd
+* puppet/systemd
 * puppet/archive
 * puppetlabs/inifile
 * puppetlabs/stdlib
@@ -59,7 +59,7 @@ In its simplest configuration, the module needs only one parameter set. This is 
 
 By default, PostgreSQL and Redis is set up as part of the installation. If you have your own PostgreSQL or Redis installation you want to use, you simply set `$handle_database` and `$handle_redis` to `false`. Some configuration is offered, but if you need to tweek any of those two softwares, I would recommend handling them outside of this module.
 
-If you want to use LDAP, activate the correct parameters (which is easy to find in the [REFERENCE](https://github.com/anderssh/ash-netbox/blob/master/REFERENCE.md)). But you must handle the LDAP-config file yourself It is still not implemented due to some complicated template work, and it's almost as easy to handle the file yourself. [The Netbox documentation is pretty clear](https://netbox.readthedocs.io/en/stable/installation/6-ldap/).
+If you want to use LDAP, activate the correct parameters (which is easy to find in the [REFERENCE](https://github.com/anderssh/ash-netbox/blob/master/REFERENCE.md)). [The Netbox documentation](https://netbox.readthedocs.io/en/stable/installation/6-ldap/).
 
 The following code shows an example where you have a `profile::netbox` ([because of course you are using the "roles and profiles" design pattern](https://puppet.com/docs/pe/latest/the_roles_and_profiles_method.html)) which takes in the secret key. This could for example be stored in Hiera eyaml.
 
@@ -69,7 +69,7 @@ class profile::netbox (
 ) {
 
   class { 'netbox':
-    secret_key    => $netbox_secret_key,
+    secret_key    => Sensitive($netbox_secret_key),
   }
 }
 ```
@@ -96,12 +96,12 @@ You probably want to adjust your parameters a little more than the minimal examp
 ```puppet
 
   class { 'netbox':
-    secret_key        => $netbox_secret_key,
+    secret_key        => Sensitive($netbox_secret_key),
     allowed_hosts     => [$trusted[certname], 'localhost'],
     banner_top        => 'TOP BANNER TEXT',
     banner_login      => 'WELCOME TO THE NETBOX LOGIN',
     banner_bottom     => 'BOTTOM BANNER TEXT',
-    database_password => $netbox_database_password,
+    database_password => Sensistive($netbox_database_password),
     email_from_email => "netbox@${trusted[domain]}",
   }
 ```
@@ -115,7 +115,7 @@ Here is a full working example with a Netbox profile which includes Netbox modul
 * The boolean `httpd_can_network_connect` set to true:
   - Done in the example, requires the `puppet/selinux` module
 * The `apache` user must be part of the `netbox`group:
-  - `usermod apache -G netbox`  
+  - `usermod apache -G netbox`
 
 ```puppet
 
@@ -124,7 +124,7 @@ Here is a full working example with a Netbox profile which includes Netbox modul
 # Profile for running Netbox through the ahs/netbox-module
 #
 class profile::netbox (
-  String $netbox_secret_key,
+  Sensitive[String] $netbox_secret_key,
 ) {
 
 selinux::boolean { 'httpd_can_network_connect': }
@@ -181,11 +181,15 @@ selinux::boolean { 'httpd_can_network_connect': }
 
 ## Limitations
 
-This module is only tested on RHEL/Centos8 at the moment, and will not work for Ubuntu family or older versions of EL just yet. 
+This module is only tested on RHEL/Centos8 at the moment, and will not work for Ubuntu family or older versions of EL just yet.
 
-Upgrading from one version of Netbox to the next is not well tested, so you might need to do some manual steps that are explained in the Netbox documentation. 
-
-This module rests too heavily on execs that are ordered and grouped together with different `notify` `refreshonly`s and it's a bit fragile. So if you make a mistake by for example specifying some parameters wrong in your initial setup, and the Puppet run fails, you might have to do some manual steps. Depending on where the mistake lies, you might have to run `pip install -r requirements.txt`, `python manage.py migrate` or some other routine. These are explained in the Netbox documentation, and it's usually pretty clear from the error messages what you need to do.
+This module does install its own python, and creates its own pythen venv using
+the upgrade.sh scrip provided by the netbox tarball.  If the python version is
+upgraDED, the upgrade.sh script will be called again, which will recreate the
+venv used by netbox to the updated python version.  When upgrading the
+postgresql version, any mifration needed is not handeled by this module, and
+shoudl be executed manualy.  One should check both postgresql and netbox release
+notes.
 
 There is only support for the tarball-way of getting Netbox as of now. This should not pose a problem as they are available through the Github repo as releases.
 
@@ -193,7 +197,7 @@ There are several optional integrations and configuration options found in the N
 
 * Remote File Storage
 * Several optional settings
- 
+
 ## Development
 
-I would be more than happy if you wanted to improve this module. Use the Github issue tracker to submit issues og fork it and issue Pull Requests. 
+I would be more than happy if you wanted to improve this module. Use the Github issue tracker to submit issues or fork it and issue Pull Requests.
